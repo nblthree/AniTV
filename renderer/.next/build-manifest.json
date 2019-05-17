@@ -1,0 +1,23 @@
+{
+  "devFiles": [
+    "static/development/dll/dll_9f052745d9378ee03f88.js"
+  ],
+  "pages": {
+    "/_app": [
+      "static/runtime/webpack.js",
+      "static/runtime/main.js"
+    ],
+    "/_error": [
+      "static/runtime/webpack.js",
+      "static/runtime/main.js"
+    ],
+    "/season": [
+      "static/runtime/webpack.js",
+      "static/runtime/main.js"
+    ],
+    "/start": [
+      "static/runtime/webpack.js",
+      "static/runtime/main.js"
+    ]
+  }
+}
