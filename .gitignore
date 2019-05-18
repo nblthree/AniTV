@@ -1,5 +1,3 @@
 node_modules
-.saber
-dist
-public
-.DS_Store
+.next
+package-lock.json
