@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Link from 'next/link'
+import Link from './Link'
 
 
 
@@ -19,23 +19,23 @@ class MainMenu extends Component {
         <menu id="mainMenu">
           <nav>
             <ul>
-              <li><Link href='/season'>
+              <li><Link activeClassName='is-active' href='/season'>
                   <a>This Season</a>
               </Link></li>
               
-              <li><Link href='/followed'>
+              <li><Link activeClassName='is-active' href='/followed'>
                   <a>Followed</a>
               </Link></li>
               
-              <li><Link href='/start'>
+              <li><Link activeClassName='is-active' href='/start'>
                   <a>Home</a>
               </Link></li>
               
-              <li><Link href='/watched'>
+              <li><Link activeClassName='is-active' href='/watched'>
                   <a>Watched</a>
               </Link></li>
 
-              <li><Link href='/options'>
+              <li><Link activeClassName='is-active' href='/options'>
                   <a>Options</a>
               </Link></li>
             </ul>
@@ -90,6 +90,10 @@ class MainMenu extends Component {
               #mainMenu li a:hover {
                 color: #efefefef;
                 //border-bottom: 2px #aaaaaa solid;
+              }
+
+              #mainMenu li .is-active {
+                color: #dcdcdc;
               }
         `}</style>
         </menu>
