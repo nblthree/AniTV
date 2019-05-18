@@ -3,21 +3,22 @@ import React, { Component } from 'react';
 export default class extends Component {
   constructor(props){
     super(props);
+    this.state = {
+      followed: this.props.followedAni.some(val => val.mal_id === this.props.anime.mal_id)
+    }
   }
-
-
-  componentDidMount() {
-
-  }
-
 
   render() {
     return (
         <div className="cadre">
+          {this.state.followed ? <div className="followed">Followed</div> : null}
           <div className="img"></div>
           <div className="info">
             <button onClick={() => {this.props.info(this.props.anime)}}>Info</button>
-            <button>Follow</button>
+            <button onClick={() => {
+              this.props.follow({anime: this.props.anime, follow: !this.state.followed})
+              this.setState(prev => ({followed: !prev.followed}))
+            }}>{this.state.followed ? 'Unfollow' : 'Follow'}</button>
           </div>
           <div className="title">{this.props.anime.title}</div>
         <style jsx>{`
@@ -25,7 +26,19 @@ export default class extends Component {
               width: 225px;
               height: 318px;
               position: relative;
-              margin-bottom: 15px;
+              margin: 0 7px 15px 7px;
+            }
+            .followed {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 60px;
+              height: 20px;
+              font-size: 12px;
+              background-color: blue;
+              text-align: center;
+              line-height: 20px;
+              color: #fff;
             }
             .img {
               width: 100%;

@@ -1,9 +1,7 @@
 module.exports = {
-  /*webpack(config, options) {
-    // Further custom configuration here
-    config.externals = ["puppeteer"]
-    return config
-  },*/
+  webpack: config => Object.assign(config, {
+    target: 'electron-renderer',
+  }),
   exportPathMap () {
     // Let Next.js know where to find the entry page
     // when it's exporting the static bundle for the use

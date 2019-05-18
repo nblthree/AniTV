@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import Layout from './../components/MyLayout'
 import Cadre from './../components/Cadre'
+import electron from 'electron';
 
 export default class extends Component {
   /*static async getInitialProps(){
@@ -11,26 +12,40 @@ export default class extends Component {
     console.log(animesTV)
     return { animesTV }
   }*/
-
+  ipcRenderer = electron.ipcRenderer || false;
   constructor(props) {
     super(props);
     this.state = {
-    	animesTV: [],
+    	animesTV: this.ipcRenderer.sendSync('get-season') || [],
+    	followedAni: this.ipcRenderer.sendSync('get-followedAni') || [],
     	info: false
     };
     this.handleInfo = this.handleInfo.bind(this)
+    this.handlefollowing = this.handlefollowing.bind(this)
   }
   async componentDidMount() {
     const response = await fetch(`https://api.jikan.moe/v3/season/${(new Date()).getYear() + 1900}/${getSeason()}`)
     const data = await response.json()
 
     const animesTV = data.anime.filter(val => val.type === 'TV')
+    if(!animesTV || animesTV.length === 0) return
     this.setState({ animesTV })
+    if (this.ipcRenderer) {
+      this.ipcRenderer.send('set-season', this.state.animesTV);
+    }
   }
 
   handleInfo(info){
   	this.setState({ info })
-  	console.log(info)
+  }
+  handlefollowing({anime, follow}){
+  	if (this.ipcRenderer) {
+  		if(follow){
+  			this.ipcRenderer.send('set-followedAni', {mal_id: anime.mal_id, title: anime.title});
+  		}else{
+  			this.ipcRenderer.send('unset-followedAni', {mal_id: anime.mal_id, title: anime.title});
+  		}
+    }
   }
 
   render() {
@@ -54,7 +69,7 @@ export default class extends Component {
           {
           	this.state.animesTV.map((val, index) => {
           		return (
-          			<Cadre info={this.handleInfo} anime={val} key={val.mal_id} />
+          			<Cadre followedAni={this.state.followedAni} follow={this.handlefollowing} info={this.handleInfo} anime={val} key={val.mal_id} />
           		)
           	})
           }
@@ -66,12 +81,12 @@ export default class extends Component {
             	position: relative;
             }
             #info {
-            	position: absolute;
+            	position: fixed; // absolute
             	top: 0;
             	left: 0;
             	width: 100%;
             	height: 100%;
-            	z-index: 1;
+            	z-index: 1000000;
             	background-color: #000000de;
             	padding: 0 50px;
     			box-sizing: border-box;
