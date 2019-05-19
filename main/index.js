@@ -1,12 +1,15 @@
 // Native
 const { join } = require('path')
 const { format } = require('url')
-
+const fs = require('fs-extra');
 // Packages
 const { BrowserWindow, app, ipcMain } = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
 
+// torrent-------------------------------------
+const WebTorrent = require('webtorrent')
+const client = new WebTorrent()
 // Store---------------------------------------
 const Store = require('electron-store');
 const isProd = process.env.NODE_ENV === 'production';
@@ -33,6 +36,15 @@ ipcMain.on('set-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || [];
   followedAni.push(arg)
   store.set('followedAni', followedAni);
+
+  // Episodes
+  let aniList = store.get('aniList') || []
+  if(!aniList.some(val => val.mal_id === arg.mal_id)){
+  	aniList.push({ mal_id: arg.mal_id, title: arg.title, episodesNumber: arg.episodes, episodesHash: [], watchedEpisodes: 0 })
+  	store.set('aniList', aniList);
+  }
+  const hashes = getHashes()
+  //StartDownloading(aniList)
 });
 ipcMain.on('unset-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || [];
@@ -40,8 +52,24 @@ ipcMain.on('unset-followedAni', (event, arg) => {
   store.set('followedAni', followedAni);
 });
 
+function getHashes() {
+	
+}
+function StartDownloading(aniList){
+	var magnetURI = '7884464d57cc787705d9c95de7d9386db0c30728'
+	const downloadPath = app.getPath('downloads')
+	client.add(magnetURI, function (torrent) {
+	  // Got torrent metadata!
+	  console.log('Client is downloading:', torrent.infoHash)
 
-
+	  torrent.files.forEach(function (file) {
+	  	file.getBuffer(async function (err, buffer) {
+		  if (err) throw err
+		  await fs.outputFile(downloadPath + (downloadPath.endsWith('/') ? '' : '/') + file.path , buffer, 'binary')
+		})
+	  })
+	})
+}
 
 // Prepare the renderer once the app is ready
 app.on('ready', async () => {

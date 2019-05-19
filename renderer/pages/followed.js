@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import Layout from './../components/MyLayout'
-import Cadre from './../components/Cadre'
+import CadreEpisodes from './../components/CadreEpisodes'
 import electron from 'electron';
 
 export default class extends Component {
@@ -16,60 +16,24 @@ export default class extends Component {
   constructor(props) {
     super(props);
     this.state = {
-    	animesTV: this.ipcRenderer.sendSync('get-season') || [],
-    	followedAni: this.ipcRenderer.sendSync('get-followedAni') || [],
-    	info: false
+    	animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
+    	episodes: false
     };
-    this.handleInfo = this.handleInfo.bind(this)
-    this.handlefollowing = this.handlefollowing.bind(this)
+
   }
   async componentDidMount() {
-    const response = await fetch(`https://api.jikan.moe/v3/season/${(new Date()).getYear() + 1900}/${getSeason()}`)
-    const data = await response.json()
 
-    const animesTV = data.anime.filter(val => val.type === 'TV')
-    if(!animesTV || animesTV.length === 0) return
-    this.setState({ animesTV })
-    if (this.ipcRenderer) {
-      this.ipcRenderer.send('set-season', this.state.animesTV);
-    }
-  }
-
-  handleInfo(info){
-  	this.setState({ info })
-  }
-  handlefollowing({anime, follow}){
-  	if (this.ipcRenderer) {
-  		if(follow){
-  			this.ipcRenderer.send('set-followedAni', anime);
-  		}else{
-  			this.ipcRenderer.send('unset-followedAni', anime);
-  		}
-    }
   }
 
   render() {
     return (
       <Layout>
         <div id="grid">
-          { this.state.info ? 
-          	<div id="info">
-          		<div className="exit" onClick={()=>{ this.handleInfo(false) }}></div>
-          		<div className="title">{this.state.info.title}</div>
-          		<div className="synopsis">{this.state.info.synopsis}</div>
-          		<div className="data">
-          			<div>Airing Start: {this.state.info.airing_start}</div>
-          			<div>Episodes: {this.state.info.episodes}</div>
-          			<div>Genres: {this.state.info.genres.map(val => val.name).join(', ')}</div>
-          			<div>MAL Rating: {this.state.info.score}</div>
-          		</div>
-          	</div> :
-          	null
-          }
+          { this.state.episodes ? null : null }
           {
           	this.state.animesTV.map((val, index) => {
           		return (
-          			<Cadre followedAni={this.state.followedAni} follow={this.handlefollowing} info={this.handleInfo} anime={val} key={val.mal_id} />
+          		 <CadreEpisodes anime={val} key={val.mal_id} />
           		)
           	})
           }
@@ -89,7 +53,7 @@ export default class extends Component {
             	z-index: 1000000;
             	background-color: #000000de;
             	padding: 0 50px;
-    			box-sizing: border-box;
+              box-sizing: border-box;
             }
             .title {
             	text-align: center;
@@ -138,32 +102,4 @@ export default class extends Component {
       </Layout>
     )
   }
-}
-
-function getSeason() {
-    const month = new Date().getMonth() + 1
-    let season = '';
-    switch(month) {
-        case 12:
-        case 1:
-        case 2:
-            season = 'winter';
-        break;
-        case 3:
-        case 4:
-        case 5:
-            season = 'spring';
-        break;
-        case 6:
-        case 7:
-        case 8:
-            season = 'summer';
-        break;
-        case 9:
-        case 10: 
-        case 11:
-            season = 'fall';
-        break;
-    }
-    return season
 }
