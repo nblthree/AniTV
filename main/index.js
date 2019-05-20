@@ -31,6 +31,15 @@ ipcMain.on('set-season', (event, arg) => {
   store.set('season', arg);
 });
 
+
+ipcMain.on('get-aniList', (event, arg) => {
+  event.returnValue = store.get('aniList') || []
+});
+ipcMain.on('start-download', (event, {anime, episode}) => {
+	StartDownloading(episode.hash.magnet, event, anime.title)
+  //event.returnValue = store.get('aniList') || []
+});
+
 ipcMain.on('get-followedAni', (event, arg) => {
   event.returnValue = store.get('followedAni') || [];
 });
@@ -112,7 +121,7 @@ function stringAnalyser(str) {
 	str = str.replaceAll("[^0-9]+", " ").trim().split(" ");
 }
 
-function StartDownloading(magnet){
+function StartDownloading(magnet, event, folder=''){
 	console.log(magnet)
 	var magnetURI = magnet
 	const downloadPath = app.getPath('downloads')
@@ -123,11 +132,19 @@ function StartDownloading(magnet){
 	  torrent.files.forEach(function (file) {
 	  	file.getBuffer(async function (err, buffer) {
 		  if (err) throw err
-		  await fs.outputFile(downloadPath + (downloadPath.endsWith('/') ? '' : '/') + file.path , buffer, 'binary')
+		  await fs.outputFile(downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder + '/' + file.path , buffer, 'binary')
 		})
 	  })
 	  torrent.on('error', function (err) {
 	  	console.log(err)
+	  })
+	  torrent.on('download', function (bytes) {
+	  	event.sender.send('torrent-progress', {
+	  		bytes,
+	  		downloaded: torrent.downloaded,
+	  		speed: torrent.downloadSpeed,
+	  		progress: torrent.progress
+	  	})
 	  })
 	})
 }

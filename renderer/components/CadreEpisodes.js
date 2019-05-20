@@ -11,7 +11,7 @@ export default class extends Component {
 
   render() {
     return (
-        <div className="cadre">
+        <div className="cadre" onClick={() => this.props.showEpisodes(this.props.anime) }>
           <div className="state">{this.state.finished_airing ? 'finished Airing' : `1/${this.props.anime.episodes}` }</div>
           <div className="img"></div>
           <div className="title">{this.props.anime.title}</div>

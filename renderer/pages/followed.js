@@ -17,56 +17,120 @@ export default class extends Component {
     super(props);
     this.state = {
     	animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
-    	episodes: false
+    	episodes: false,
+      torrent: false
     };
 
+    this.showEpisodes = this.showEpisodes.bind(this)
+    this.download = this.download.bind(this)
   }
-  async componentDidMount() {
-
+  componentDidMount() {
+    this.ipcRenderer.on('torrent-progress', (event, arg) => {
+      this.setState({torrent: arg})
+      //console.log(arg)
+    })
   }
-
+  showEpisodes(anime) {
+    this.setState({
+      episodes: this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === anime.mal_id)
+    })
+  }
+  download(obj){
+    this.ipcRenderer.sendSync('start-download', obj)
+  }
   render() {
     return (
       <Layout>
-        <div id="grid">
-          { this.state.episodes ? null : null }
-          {
-          	this.state.animesTV.map((val, index) => {
-          		return (
-          		 <CadreEpisodes anime={val} key={val.mal_id} />
-          		)
-          	})
+        <div>
+          { this.state.episodes ? 
+            <div className="episodes">
+              <div className="exit" onClick={()=>{ this.showEpisodes(false) }}></div>
+              <div className="grid">
+                {
+                  this.state.episodes[0].episodesHash.map(val => {
+                    return (
+                      <div className="episode" key={val.hash.magnet + val.episode}>
+                        <div className="progress">
+                          <div className="progress-bar" style={{width: this.state.torrent ? (this.state.torrent.progress * 100 + '%') : 0}} ></div>
+                        </div>
+                        <button onClick={() => this.download({anime: this.state.episodes[0], episode: val})} >Download</button>
+                        <div className="title">Episode: {val.episode}</div>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            </div>
+          :
+            <div className="grid">
+              {
+                this.state.animesTV.map((val, index) => {
+                  return (
+                   <CadreEpisodes showEpisodes={this.showEpisodes} anime={val} key={val.mal_id} />
+                  )
+                })
+              }
+            </div>
           }
           <style jsx>{`
-            #grid {
+            .grid {
             	display: flex;
             	flex-wrap: wrap;
             	justify-content: space-around;
             	position: relative;
             }
-            #info {
-            	position: fixed; // absolute
+            .episodes {
+            	position: relative;
             	top: 0;
             	left: 0;
             	width: 100%;
             	height: 100%;
-            	z-index: 1000000;
-            	background-color: #000000de;
             	padding: 0 50px;
               box-sizing: border-box;
             }
-            .title {
-            	text-align: center;
-			    font-weight: 600;
-			    font-size: 2rem;
-			    padding: 50px 0;
+            .episode {
+              width: 320px;
+              height: 180px;
+              position: relative;
+              margin: 0 7px 15px 7px;
+              display: flex;
+              background-color: #000;
             }
-            .synopsis {
-            	font-size: 1.05rem;
-			    text-indent: 2rem;
-			    max-width: 800px;
-			    margin: auto;
-			    margin-bottom: 20px;
+            .episode button {
+              width: 120px;
+              height: 25px;
+              border-radius: 12px;
+              margin: auto;
+              outline: none;
+              border: 0;
+              color: #fff;
+              background-color: #ffffff1f;
+              cursor: pointer;
+            }
+            .title {
+              position: absolute;
+              bottom: 0;
+              text-align: center;
+              width: 100%;
+              background-color: #111111e6;
+              max-height: 20px;
+              overflow: hidden;
+              // color: #fff;
+            }
+            .progress {
+              position: absolute;
+              top: 0;
+              width: 100%;
+              background-color: #111111e6;
+              height: 10px;
+              overflow: hidden;
+              display: flex;
+            }
+            .progress-bar {
+              height: 100%;
+              width: 0;
+              background-color: #5555ff;
+              height: 20px;
             }
             .exit {
             	width: 50px;
@@ -92,10 +156,6 @@ export default class extends Component {
             }
             .exit:after {
             	transform: rotateZ(-45deg);
-            }
-            .data {
-            	max-width: 800px;
-            	margin: auto;
             }
           `}</style>
         </div>
