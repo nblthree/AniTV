@@ -7,6 +7,8 @@ const { BrowserWindow, app, ipcMain } = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
 
+// Scraping------------------------------------
+const puppeteer = require('puppeteer')
 // torrent-------------------------------------
 const WebTorrent = require('webtorrent')
 const client = new WebTorrent()
@@ -32,19 +34,32 @@ ipcMain.on('set-season', (event, arg) => {
 ipcMain.on('get-followedAni', (event, arg) => {
   event.returnValue = store.get('followedAni') || [];
 });
-ipcMain.on('set-followedAni', (event, arg) => {
+ipcMain.on('set-followedAni', async (event, arg) => {
   let followedAni = store.get('followedAni') || [];
   followedAni.push(arg)
   store.set('followedAni', followedAni);
 
   // Episodes
   let aniList = store.get('aniList') || []
+
+  const hashes = []
+  for (var i = 0; i < arg.episodes; i++) {
+  	let hash = chooseHash(await getHashes(arg.title, i+1), arg.title)
+  	if(hash){
+  		hashes.push({hash, episode: i+1})
+  	}else{
+  		break
+  	}
+  }
+
   if(!aniList.some(val => val.mal_id === arg.mal_id)){
-  	aniList.push({ mal_id: arg.mal_id, title: arg.title, episodesNumber: arg.episodes, episodesHash: [], watchedEpisodes: 0 })
+  	aniList.push({ mal_id: arg.mal_id, title: arg.title, episodesNumber: arg.episodes, episodesHash: hashes, watchedEpisodes: 0 })
   	store.set('aniList', aniList);
   }
-  const hashes = getHashes()
-  //StartDownloading(aniList)
+
+  /*if(hashes.length){
+  	StartDownloading(hashes[0].magnet)
+  }*/
 });
 ipcMain.on('unset-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || [];
@@ -52,11 +67,54 @@ ipcMain.on('unset-followedAni', (event, arg) => {
   store.set('followedAni', followedAni);
 });
 
-function getHashes() {
-	
+async function getHashes(title, episode) {
+	let hashes = await new Promise(resolve => {
+		void (async ()=>{
+			const browser = await puppeteer.launch()
+			const page = await browser.newPage()
+			await page.goto(`https://nyaa.si/?f=0&c=1_2&q=${processTitle(title, episode)}&s=seeders&o=desc`)
+
+			const result = await page.evaluate(() => {
+			  const grabFromItem = (item, selector, attr) =>{
+			  	const val = item.querySelector(selector)
+			  	return val ? val[attr] : ''
+			  }
+			  const data = document.querySelectorAll("tr")
+			  const items = [...data].map(item => (
+			  	{
+			  		title: grabFromItem(item, 'td:nth-of-type(2) a:not([class])', 'title'),
+			  		magnet: grabFromItem(item, 'td:nth-of-type(3) a:nth-of-type(2)', 'href')
+			  	}
+			  ))
+			  return items
+			})
+			await browser.close()
+			resolve(result)
+		})()
+	})
+	return hashes.filter(val => (val.title && val.magnet))
 }
-function StartDownloading(aniList){
-	var magnetURI = '7884464d57cc787705d9c95de7d9386db0c30728'
+function chooseHash(hashes, title){
+	// Keep it sample for now
+	return hashes[0]
+}
+function processTitle(title, episode){
+	var quality = 720
+	title = title.replace(/season ?/i, 'S').replace(/part ?[0-9]/i, '').trim()
+	title = fixedEncodeURI(title)
+	title += '+' + episode + ' ' + 720
+	return title
+} 
+function fixedEncodeURI(str) {
+  return encodeURI(str).replace(/[!'()*]/g, escape).replace(/%20/g, '+');
+}
+function stringAnalyser(str) {
+	str = str.replaceAll("[^0-9]+", " ").trim().split(" ");
+}
+
+function StartDownloading(magnet){
+	console.log(magnet)
+	var magnetURI = magnet
 	const downloadPath = app.getPath('downloads')
 	client.add(magnetURI, function (torrent) {
 	  // Got torrent metadata!
@@ -67,6 +125,9 @@ function StartDownloading(aniList){
 		  if (err) throw err
 		  await fs.outputFile(downloadPath + (downloadPath.endsWith('/') ? '' : '/') + file.path , buffer, 'binary')
 		})
+	  })
+	  torrent.on('error', function (err) {
+	  	console.log(err)
 	  })
 	})
 }

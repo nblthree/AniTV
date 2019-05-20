@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "electron .",
     "build": "next build renderer && next export renderer",
-    "dist": "npm run build && build --dir"
+    "dist": "npm run build && build --dir",
+    "lintfix": "xo --fix"
   },
   "build": {
     "asar": false,
@@ -22,11 +23,15 @@
     "electron-builder": "^20.39.0",
     "next": "^8.1.0",
     "react": "^16.8.6",
-    "react-dom": "^16.8.6"
+    "react-dom": "^16.8.6",
+    "xo": "^0.24.0"
   },
   "dependencies": {
     "electron-is-dev": "^1.0.1",
     "electron-next": "^3.1.5",
-    "electron-store": "^3.2.0"
+    "electron-store": "^3.2.0",
+    "fs-extra": "^8.0.1",
+    "puppeteer": "^1.16.0",
+    "webtorrent": "^0.103.1"
   }
 }
