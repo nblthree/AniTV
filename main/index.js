@@ -36,8 +36,7 @@ ipcMain.on('get-aniList', (event, arg) => {
   event.returnValue = store.get('aniList') || []
 });
 ipcMain.on('start-download', (event, {anime, episode}) => {
-	StartDownloading(episode.hash.magnet, event, anime.title)
-  //event.returnValue = store.get('aniList') || []
+  StartDownloading(episode.hash.magnet, event, anime)
 });
 
 ipcMain.on('get-followedAni', (event, arg) => {
@@ -74,6 +73,21 @@ ipcMain.on('unset-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || [];
   followedAni = followedAni.filter(val => val.mal_id !== arg.mal_id)
   store.set('followedAni', followedAni);
+});
+
+ipcMain.on('get-downloadedEpi', async (event, arg) => {
+  let aniList = store.get('aniList') || [];
+  let torrent = {}
+  for (let val of aniList) {
+    for (let _val of val.episodesHash) {
+	    if(_val.pathname && await fs.pathExists(_val.pathname)) {
+		  	torrent[_val.hash.magnet] = {
+		  		progress: 1
+		  	}
+  		}
+	  }
+  }
+  event.returnValue = torrent
 });
 
 async function getHashes(title, episode) {
@@ -121,29 +135,50 @@ function stringAnalyser(str) {
 	str = str.replaceAll("[^0-9]+", " ").trim().split(" ");
 }
 
-function StartDownloading(magnet, event, folder=''){
+function StartDownloading(magnet, event, anime){
 	console.log(magnet)
+	var folder = anime.title
 	var magnetURI = magnet
 	const downloadPath = app.getPath('downloads')
-	client.add(magnetURI, function (torrent) {
+	const pathname = downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder
+	client.add(magnetURI, { path: pathname }, function (torrent) {
 	  // Got torrent metadata!
 	  console.log('Client is downloading:', torrent.infoHash)
-
-	  torrent.files.forEach(function (file) {
+	  /*torrent.files.forEach(function (file) {
 	  	file.getBuffer(async function (err, buffer) {
 		  if (err) throw err
 		  await fs.outputFile(downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder + '/' + file.path , buffer, 'binary')
 		})
+	  })*/
+	  torrent.on('done', function () {
+	    console.log('torrent download finished')
+	    let aniList = store.get('aniList') || []
+	    let episodesHash = aniList.filter(val => val.mal_id === anime.mal_id)[0].episodesHash
+	    episodesHash = episodesHash.map(val => {
+	    	if(val.hash.magnet === magnetURI){
+	    		val.pathname = pathname + '/' + torrent.files[0].path
+	    	}
+	    	return val
+	    })
+	    aniList = aniList.map(val => {
+	    	if(val.mal_id === anime.mal_id){
+	    		val.episodesHash = episodesHash
+	    	}
+	    	return val
+	    })
+	    store.set('aniList', aniList);
 	  })
 	  torrent.on('error', function (err) {
 	  	console.log(err)
 	  })
 	  torrent.on('download', function (bytes) {
 	  	event.sender.send('torrent-progress', {
-	  		bytes,
-	  		downloaded: torrent.downloaded,
-	  		speed: torrent.downloadSpeed,
-	  		progress: torrent.progress
+	  		[magnet]: {
+  		  		bytes,
+  		  		downloaded: torrent.downloaded,
+  		  		speed: torrent.downloadSpeed,
+  		  		progress: torrent.progress
+  		  	}
 	  	})
 	  })
 	})
@@ -158,6 +193,8 @@ app.on('ready', async () => {
     height: 700,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
+      contextIsolation: false,
       preload: join(__dirname, 'preload.js')
     }
   })
@@ -170,7 +207,7 @@ app.on('ready', async () => {
       protocol: 'file:',
       slashes: true
     })
-
+  mainWindow.setMenu(null)
   mainWindow.loadURL(url)
 })
 

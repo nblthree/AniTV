@@ -18,25 +18,37 @@ export default class extends Component {
     this.state = {
     	animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
     	episodes: false,
-      torrent: false
+      torrent: this.ipcRenderer.sendSync('get-downloadedEpi') || {}
     };
 
     this.showEpisodes = this.showEpisodes.bind(this)
     this.download = this.download.bind(this)
+    this.playEpisode = this.playEpisode.bind(this)
   }
   componentDidMount() {
+    console.log(this.ipcRenderer.sendSync('get-downloadedEpi'))
     this.ipcRenderer.on('torrent-progress', (event, arg) => {
-      this.setState({torrent: arg})
-      //console.log(arg)
+      this.setState(prev => {
+        let torrent = Object.assign({}, prev, arg);
+        return {
+          torrent: torrent
+        }
+      })
     })
   }
   showEpisodes(anime) {
     this.setState({
-      episodes: this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === anime.mal_id)
+      episodes: anime ? (this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === anime.mal_id))[0] : anime
     })
   }
-  download(obj){
-    this.ipcRenderer.sendSync('start-download', obj)
+  download(obj) {
+    this.ipcRenderer.send('start-download', obj)
+  }
+  playEpisode({ target }) {
+    target.webkitRequestFullscreen()
+    if(target.paused){
+      target.play()
+    }
   }
   render() {
     return (
@@ -47,13 +59,20 @@ export default class extends Component {
               <div className="exit" onClick={()=>{ this.showEpisodes(false) }}></div>
               <div className="grid">
                 {
-                  this.state.episodes[0].episodesHash.map(val => {
+                  this.state.episodes.episodesHash.map(val => {
                     return (
                       <div className="episode" key={val.hash.magnet + val.episode}>
                         <div className="progress">
-                          <div className="progress-bar" style={{width: this.state.torrent ? (this.state.torrent.progress * 100 + '%') : 0}} ></div>
+                          <div className="progress-bar" style={
+                            {
+                              width: this.state.torrent[val.hash.magnet] ? (this.state.torrent[val.hash.magnet].progress * 100 + '%') : 0,
+                              backgroundColor: this.state.torrent[val.hash.magnet] && this.state.torrent[val.hash.magnet].progress === 1 ? "#95ff95" : "#5555ff"
+                            }
+                          } ></div>
                         </div>
-                        <button onClick={() => this.download({anime: this.state.episodes[0], episode: val})} >Download</button>
+                        { this.state.torrent[val.hash.magnet] ?
+                          <video src={val.pathname} onClick={(e)=> this.playEpisode(e)} />
+                         : <button onClick={() => this.download({anime: this.state.episodes, episode: val})} >Download</button> }
                         <div className="title">Episode: {val.episode}</div>
                       </div>
                     )
@@ -96,6 +115,10 @@ export default class extends Component {
               display: flex;
               background-color: #000;
             }
+            video {
+              width: 100%;
+              height: 100%;
+            }
             .episode button {
               width: 120px;
               height: 25px;
@@ -130,7 +153,6 @@ export default class extends Component {
               height: 100%;
               width: 0;
               background-color: #5555ff;
-              height: 20px;
             }
             .exit {
             	width: 50px;
