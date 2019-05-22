@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import { Component } from 'react'
 
 export default class extends Component {
-  constructor(props){
-    super(props);
+  constructor(props) {
+    super(props)
     this.state = {
       followed: this.props.anime,
       finished_airing: false
@@ -11,10 +11,17 @@ export default class extends Component {
 
   render() {
     return (
-        <div className="cadre" onClick={() => this.props.showEpisodes(this.props.anime) }>
-          <div className="state">{this.state.finished_airing ? 'finished Airing' : `1/${this.props.anime.episodes}` }</div>
-          <div className="img"></div>
-          <div className="title">{this.props.anime.title}</div>
+      <div
+        className="cadre"
+        onClick={() => this.props.showEpisodes(this.props.anime)}
+      >
+        <div className="state">
+          {this.state.finished_airing
+            ? 'finished Airing'
+            : `1/${this.props.anime.episodes}`}
+        </div>
+        <div className="img" />
+        <div className="title">{this.props.anime.title}</div>
         <style jsx>{`
             .cadre {
               width: 225px;
@@ -77,7 +84,7 @@ export default class extends Component {
               border: 0.5px solid #aaa;
             }
         `}</style>
-        </div>
-    );
+      </div>
+    )
   }
 }

@@ -1,42 +1,44 @@
 import { Component } from 'react'
-import Layout from './../components/MyLayout'
+import Layout from '../components/MyLayout'
 
 export default class extends Component {
-  state = {
-    input: '',
-    message: null
+  constructor(props) {
+    super(props)
+    this.state = {
+      input: '',
+      message: null
+    }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     // start listening the channel message
     global.ipcRenderer.on('message', this.handleMessage)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     // stop listening the channel message
     global.ipcRenderer.removeListener('message', this.handleMessage)
   }
 
-  handleMessage = (event, message) => {
+  handleMessage(event, message) {
     // receive a message from the main process and save it in the local state
     this.setState({ message })
   }
 
-  handleChange = event => {
+  handleChange(event) {
     this.setState({ input: event.target.value })
   }
 
-  handleSubmit = event => {
+  handleSubmit(event) {
     event.preventDefault()
     global.ipcRenderer.send('message', this.state.input)
     this.setState({ message: null })
   }
 
-  render () {
+  render() {
     return (
       <Layout>
         <div>
-       
           <style jsx>{`
             h1 {
               color: red;

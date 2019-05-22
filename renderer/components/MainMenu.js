@@ -1,45 +1,43 @@
-import React, { Component } from 'react';
+import { Component } from 'react'
 import Link from './Link'
 
-
-
 class MainMenu extends Component {
-  constructor(props){
-    super(props);
-  }
-
-
-  componentDidMount() {
-    
-  }
-
-
   render() {
     return (
-        <menu id="mainMenu">
-          <nav>
-            <ul>
-              <li><Link activeClassName='is-active' href='/season'>
-                  <a>This Season</a>
-              </Link></li>
-              
-              <li><Link activeClassName='is-active' href='/followed'>
-                  <a>Followed</a>
-              </Link></li>
-              
-              <li><Link activeClassName='is-active' href='/start'>
-                  <a>Home</a>
-              </Link></li>
-              
-              <li><Link activeClassName='is-active' href='/watched'>
-                  <a>Watched</a>
-              </Link></li>
+      <menu id="mainMenu">
+        <nav>
+          <ul>
+            <li>
+              <Link activeClassName="is-active" href="/season">
+                <a>This Season</a>
+              </Link>
+            </li>
 
-              <li><Link activeClassName='is-active' href='/options'>
-                  <a>Options</a>
-              </Link></li>
-            </ul>
-          </nav>
+            <li>
+              <Link activeClassName="is-active" href="/followed">
+                <a>Followed</a>
+              </Link>
+            </li>
+
+            <li>
+              <Link activeClassName="is-active" href="/start">
+                <a>Home</a>
+              </Link>
+            </li>
+
+            <li>
+              <Link activeClassName="is-active" href="/watched">
+                <a>Watched</a>
+              </Link>
+            </li>
+
+            <li>
+              <Link activeClassName="is-active" href="/options">
+                <a>Options</a>
+              </Link>
+            </li>
+          </ul>
+        </nav>
         <style jsx>{`
             #mainMenu {
                 position: relative;
@@ -96,9 +94,9 @@ class MainMenu extends Component {
                 color: #dcdcdc;
               }
         `}</style>
-        </menu>
-    );
+      </menu>
+    )
   }
 }
 
-export default MainMenu;
+export default MainMenu

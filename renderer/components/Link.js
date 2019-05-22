@@ -14,7 +14,11 @@ const ActiveLink = ({ router, children, ...props }) => {
 
   delete props.activeClassName
 
-  return <Link {...props} prefetch>{React.cloneElement(child, { className })}</Link>
+  return (
+    <Link {...props} prefetch>
+      {React.cloneElement(child, { className })}
+    </Link>
+  )
 }
 
 export default withRouter(ActiveLink)

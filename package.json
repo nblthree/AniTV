@@ -7,7 +7,8 @@
     "dev": "electron .",
     "build": "next build renderer && next export renderer",
     "dist": "npm run build && build --dir",
-    "lintfix": "xo --fix"
+    "lintfix": "xo --fix",
+    "lint": "xo"
   },
   "build": {
     "asar": false,
@@ -19,9 +20,14 @@
     ]
   },
   "devDependencies": {
+    "babel-eslint": "^10.0.1",
     "electron": "^4.1.0",
     "electron-builder": "^20.39.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-config-rem": "^4.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "next": "^8.1.0",
+    "prettier": "^1.17.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "xo": "^0.24.0"
@@ -34,5 +40,24 @@
     "fuzzball": "^1.2.2",
     "puppeteer": "^1.16.0",
     "webtorrent": "^0.103.1"
+  },
+  "xo": {
+    "extends": [
+      "rem",
+      "plugin:prettier/recommended"
+    ],
+    "rules": {
+      "import/no-unassigned-import": "off",
+      "unicorn/filename-case": "off",
+      "no-await-in-loop": "off",
+      "unicorn/no-abusive-eslint-disable": "off",
+      "camelcase": "off",
+      "no-undef": "off",
+      "no-void": "off"
+    },
+    "ignore": [
+      "**/node_modules/**",
+      "**/.next/**"
+    ]
   }
 }

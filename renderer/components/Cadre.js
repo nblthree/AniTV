@@ -1,26 +1,41 @@
-import React, { Component } from 'react';
+import { Component } from 'react'
 
 export default class extends Component {
-  constructor(props){
-    super(props);
+  constructor(props) {
+    super(props)
     this.state = {
-      followed: this.props.followedAni.some(val => val.mal_id === this.props.anime.mal_id)
+      followed: this.props.followedAni.some(
+        val => val.mal_id === this.props.anime.mal_id
+      )
     }
   }
 
   render() {
     return (
-        <div className="cadre">
-          {this.state.followed ? <div className="followed">Followed</div> : null}
-          <div className="img"></div>
-          <div className="info">
-            <button onClick={() => {this.props.info(this.props.anime)}}>Info</button>
-            <button onClick={() => {
-              this.props.follow({anime: this.props.anime, follow: !this.state.followed})
-              this.setState(prev => ({followed: !prev.followed}))
-            }}>{this.state.followed ? 'Unfollow' : 'Follow'}</button>
-          </div>
-          <div className="title">{this.props.anime.title}</div>
+      <div className="cadre">
+        {this.state.followed ? <div className="followed">Followed</div> : null}
+        <div className="img" />
+        <div className="info">
+          <button
+            onClick={() => {
+              this.props.info(this.props.anime)
+            }}
+          >
+            Info
+          </button>
+          <button
+            onClick={() => {
+              this.props.follow({
+                anime: this.props.anime,
+                follow: !this.state.followed
+              })
+              this.setState(prev => ({ followed: !prev.followed }))
+            }}
+          >
+            {this.state.followed ? 'Unfollow' : 'Follow'}
+          </button>
+        </div>
+        <div className="title">{this.props.anime.title}</div>
         <style jsx>{`
             .cadre {
               width: 225px;
@@ -83,7 +98,7 @@ export default class extends Component {
               border: 0.5px solid #aaa;
             }
         `}</style>
-        </div>
-    );
+      </div>
+    )
   }
 }
