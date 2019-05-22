@@ -31,6 +31,7 @@
     "electron-next": "^3.1.5",
     "electron-store": "^3.2.0",
     "fs-extra": "^8.0.1",
+    "fuzzball": "^1.2.2",
     "puppeteer": "^1.16.0",
     "webtorrent": "^0.103.1"
   }

@@ -7,6 +7,8 @@ const { BrowserWindow, app, ipcMain } = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
 
+// fuzz
+const fuzz = require('fuzzball')
 // Scraping------------------------------------
 const puppeteer = require('puppeteer')
 // torrent-------------------------------------
@@ -52,8 +54,8 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 
   const hashes = []
   for (var i = 0; i < arg.episodes; i++) {
-  	let hash = chooseHash(await getHashes(arg.title, i+1), arg.title)
-  	if(hash){
+  	let hash = chooseHash(await getHashes(arg.title, i+1), {title: arg.title, episode: i+1})
+  	if(hash && !isDuplicate(hashes, hash)){
   		hashes.push({hash, episode: i+1})
   	}else{
   		break
@@ -64,10 +66,6 @@ ipcMain.on('set-followedAni', async (event, arg) => {
   	aniList.push({ mal_id: arg.mal_id, title: arg.title, episodesNumber: arg.episodes, episodesHash: hashes, watchedEpisodes: 0 })
   	store.set('aniList', aniList);
   }
-
-  /*if(hashes.length){
-  	StartDownloading(hashes[0].magnet)
-  }*/
 });
 ipcMain.on('unset-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || [];
@@ -82,6 +80,7 @@ ipcMain.on('get-downloadedEpi', async (event, arg) => {
     for (let _val of val.episodesHash) {
 	    if(_val.pathname && await fs.pathExists(_val.pathname)) {
 		  	torrent[_val.hash.magnet] = {
+		  		key: _val.hash.magnet,
 		  		progress: 1
 		  	}
   		}
@@ -89,37 +88,52 @@ ipcMain.on('get-downloadedEpi', async (event, arg) => {
   }
   event.returnValue = torrent
 });
-
+function isDuplicate(array, arg){
+	return array.some(val => val.hash.magnet === arg.magnet)
+}
 async function getHashes(title, episode) {
 	let hashes = await new Promise(resolve => {
 		void (async ()=>{
-			const browser = await puppeteer.launch()
-			const page = await browser.newPage()
-			await page.goto(`https://nyaa.si/?f=0&c=1_2&q=${processTitle(title, episode)}&s=seeders&o=desc`)
+			try {
+				const browser = await puppeteer.launch()
+				const page = await browser.newPage()
+				await page.goto(`https://nyaa.si/?f=0&c=1_2&q=${processTitle(title, episode)}&s=seeders&o=desc`)
 
-			const result = await page.evaluate(() => {
-			  const grabFromItem = (item, selector, attr) =>{
-			  	const val = item.querySelector(selector)
-			  	return val ? val[attr] : ''
-			  }
-			  const data = document.querySelectorAll("tr")
-			  const items = [...data].map(item => (
-			  	{
-			  		title: grabFromItem(item, 'td:nth-of-type(2) a:not([class])', 'title'),
-			  		magnet: grabFromItem(item, 'td:nth-of-type(3) a:nth-of-type(2)', 'href')
-			  	}
-			  ))
-			  return items
-			})
-			await browser.close()
-			resolve(result)
+				const result = await page.evaluate(() => {
+				  const grabFromItem = (item, selector, attr) =>{
+				  	const val = item.querySelector(selector)
+				  	return val ? val[attr] : ''
+				  }
+				  const data = document.querySelectorAll("tr")
+				  const items = [...data].map(item => (
+				  	{
+				  		title: grabFromItem(item, 'td:nth-of-type(2) a:not([class])', 'title'),
+				  		magnet: grabFromItem(item, 'td:nth-of-type(3) a:nth-of-type(2)', 'href')
+				  	}
+				  ))
+				  return items
+				})
+				await browser.close()
+				resolve(result)
+			} catch(error) {
+				console.log(error)
+				resolve(getHashes(title, episode))
+			}
 		})()
 	})
 	return hashes.filter(val => (val.title && val.magnet))
 }
-function chooseHash(hashes, title){
+function chooseHash(hashes, {title, episode}){
 	// Keep it sample for now
-	return hashes[0]
+
+	title += " " + episode 
+	const options = {scorer: fuzz.token_set_ratio, returnObjects: true, full_process: true};
+	const choices = hashes.map(val => val.title);
+
+	let result = fuzz.extract(title, choices, options);
+
+	const key = result.length > 1 ? ((result[0].key > result[1].key && result[0].score === result[1].score) ? result[1].key : result[0].key) : 0
+	return hashes[key]
 }
 function processTitle(title, episode){
 	var quality = 720
@@ -142,7 +156,14 @@ function StartDownloading(magnet, event, anime){
 	const downloadPath = app.getPath('downloads')
 	const pathname = downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder
 	client.add(magnetURI, { path: pathname }, function (torrent) {
-	  // Got torrent metadata!
+	  event.sender.send('torrent-progress', {
+		  key: magnet,
+		  bytes: 0,
+		  downloaded: 0,
+		  speed: 0,
+		  progress: 0
+		}
+	  )
 	  console.log('Client is downloading:', torrent.infoHash)
 	  /*torrent.files.forEach(function (file) {
 	  	file.getBuffer(async function (err, buffer) {
@@ -173,13 +194,13 @@ function StartDownloading(magnet, event, anime){
 	  })
 	  torrent.on('download', function (bytes) {
 	  	event.sender.send('torrent-progress', {
-	  		[magnet]: {
+	  			key: magnet,
   		  		bytes,
   		  		downloaded: torrent.downloaded,
   		  		speed: torrent.downloadSpeed,
   		  		progress: torrent.progress
   		  	}
-	  	})
+	  	)
 	  })
 	})
 }

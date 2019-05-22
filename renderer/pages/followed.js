@@ -24,16 +24,27 @@ export default class extends Component {
     this.showEpisodes = this.showEpisodes.bind(this)
     this.download = this.download.bind(this)
     this.playEpisode = this.playEpisode.bind(this)
+    this.torrentState = this.torrentState.bind(this)
   }
   componentDidMount() {
-    console.log(this.ipcRenderer.sendSync('get-downloadedEpi'))
-    this.ipcRenderer.on('torrent-progress', (event, arg) => {
-      this.setState(prev => {
-        let torrent = Object.assign({}, prev, arg);
+    this.ipcRenderer.on('torrent-progress', this.torrentState)
+  }
+  componentWillUnmount() {
+    this.ipcRenderer.removeListener('torrent-progress', this.torrentState)
+  }
+  torrentState(event, arg) {
+    this.setState(prev => {
+      let torrent = prev.torrent
+      torrent[arg.key] = arg
+      if(arg.progress === 1){
         return {
+          episodes: this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === prev.episodes.mal_id)[0],
           torrent: torrent
         }
-      })
+      }
+      return {
+        torrent: torrent
+      }
     })
   }
   showEpisodes(anime) {
