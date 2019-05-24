@@ -5,7 +5,7 @@
 Fork this project, then:
 
 ```bash
-git clone git@github.com:$USER/saber.git
+git clone git@github.com:$USER/AniTV.git
 cd AniTV
 
 # Install dependencies
