@@ -48,7 +48,7 @@ ipcMain.on('set-followedAni', async (event, arg) => {
   // Episodes
   const aniList = store.get('aniList') || []
 
-  const hashes = []
+  let hashes = []
   for (let i = 0; i < arg.episodes; i++) {
     const hash = chooseHash(await getHashes(arg.title, i + 1), {
       title: arg.title,
@@ -59,6 +59,13 @@ ipcMain.on('set-followedAni', async (event, arg) => {
     } else {
       break
     }
+  }
+
+  // TODO: change the title and search for the magnetURI(hashes) if hashes.length===0 (In progress)
+  if (hashes.length === 0) {
+    const { newTitle, newHashes } = await refresh(arg)
+    arg.title = newTitle
+    hashes = newHashes
   }
 
   if (!aniList.some(val => val.mal_id === arg.mal_id)) {
@@ -96,6 +103,46 @@ ipcMain.on('get-downloadedEpi', async (event, arg) => {
 })
 function isDuplicate(array, arg) {
   return array.some(val => val.hash.magnet === arg.magnet)
+}
+
+function refresh(anime) {
+  return new Promise(async resolve => {
+    const titleOperations = [
+      { name: 'drop-nd-rd-th', tested: false },
+      { name: 'pure', tested: false }
+    ]
+    let newTitle = anime.title
+    const newEpisodesNumber = anime.episodes
+    const newHashes = []
+    let loopLength = anime.episodes
+    for (const operation of titleOperations) {
+      if (operation.name === 'drop-nd-rd-th') {
+        newTitle = newTitle.replace(/season|nd|rd|th/gi, '')
+        const season = newTitle.match(/\d+/g)
+        newTitle += season ? ' S' + season[0] : ''
+      } else {
+        newTitle = anime.title
+        newTitle = newTitle.replace(/season|nd|rd|th|\d+/gi, '')
+        loopLength = 500
+      }
+
+      for (let i = 0; i < loopLength; i++) {
+        const hash = chooseHash(await getHashes(newTitle, i + 1), {
+          title: newTitle,
+          episode: i + 1
+        })
+        if (hash && !isDuplicate(newHashes, hash)) {
+          newHashes.push({ hash, episode: i + 1 })
+        } else {
+          break
+        }
+      }
+
+      if (newHashes.length !== 0) break
+    }
+
+    resolve({ newTitle, newHashes })
+  })
 }
 
 async function getHashes(title, episode) {
@@ -153,8 +200,10 @@ function chooseHash(hashes, { title, episode }) {
     full_process: true
   }
   const choices = hashes.map(val => val.title)
-
   const result = fuzz.extract(title, choices, options)
+
+  // TODO: a mush more advenced algorithm must be used to get the required title (magnetURI) instead of fuzz
+  // idea: process the choices to make them easier to classifier for fuzz
 
   const key =
     result.length > 1

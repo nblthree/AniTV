@@ -52,7 +52,7 @@ export default class extends Component {
         ? this.ipcRenderer
             .sendSync('get-aniList')
             .filter(val => val.mal_id === anime.mal_id)[0]
-        : anime
+        : false
     })
   }
 
@@ -102,6 +102,21 @@ export default class extends Component {
                                 : '#5555ff'
                           }}
                         />
+                        {this.state.torrent[val.hash.magnet] &&
+                        this.state.torrent[val.hash.magnet].progress < 1 ? (
+                          <div className="download_speed">
+                            <span>
+                              {bytesConverter(
+                                this.state.torrent[val.hash.magnet].downloaded
+                              )}
+                            </span>
+                            <span>
+                              {bytesConverter(
+                                this.state.torrent[val.hash.magnet].speed
+                              )}
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
                       {this.state.torrent[val.hash.magnet] ? (
                         <video
@@ -120,7 +135,9 @@ export default class extends Component {
                           Download
                         </button>
                       )}
-                      <div className="title">Episode: {val.episode}</div>
+                      <div className="title">
+                        {val.hash.title.replace(/\[.*?\]/g, '')}
+                      </div>
                     </div>
                   )
                 })}
@@ -184,7 +201,7 @@ export default class extends Component {
               text-align: center;
               width: 100%;
               background-color: #111111e6;
-              max-height: 20px;
+              max-height: 42px;
               overflow: hidden;
               // color: #fff;
             }
@@ -193,7 +210,7 @@ export default class extends Component {
               top: 0;
               width: 100%;
               background-color: #111111e6;
-              height: 10px;
+              height: 15px;
               overflow: hidden;
               display: flex;
             }
@@ -201,6 +218,14 @@ export default class extends Component {
               height: 100%;
               width: 0;
               background-color: #5555ff;
+            }
+            .download_speed {
+              position: absolute;
+              line-height: 14px;
+              color: #fff;
+              width: 100%;
+              display: flex;
+              justify-content: space-around;
             }
             .exit {
               width: 50px;
@@ -232,4 +257,11 @@ export default class extends Component {
       </Layout>
     )
   }
+}
+
+function bytesConverter(bytes) {
+  let convertedValue = (bytes / 10 ** 6).toFixed(1) // MB
+  if (convertedValue < 1000) return `${convertedValue}MB`
+  convertedValue = (bytes / 10 ** 9).toFixed(1) // GB
+  return `${convertedValue}GB`
 }
