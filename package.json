@@ -1,6 +1,6 @@
 {
-  "name": "electron-next-skeleton",
-  "productName": "ElectronNext",
+  "name": "AniTV",
+  "productName": "AniTV",
   "version": "1.0.0",
   "main": "main/index.js",
   "scripts": {
@@ -19,6 +19,8 @@
       }
     ]
   },
+  "author": "MarchWorks<edel.f.wool@gmail.com>",
+  "license": "MIT",
   "devDependencies": {
     "babel-eslint": "^10.0.1",
     "electron": "^4.1.0",
