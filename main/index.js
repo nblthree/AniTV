@@ -48,26 +48,10 @@ ipcMain.on('set-followedAni', async (event, arg) => {
   // Episodes
   const aniList = store.get('aniList') || []
 
-  let hashes = []
-  for (let i = 0; i < arg.episodes; i++) {
-    const hash = chooseHash(await getHashes(arg.title, i + 1), {
-      title: arg.title,
-      episode: i + 1
-    })
-    if (hash && !isDuplicate(hashes, hash)) {
-      hashes.push({ hash, episode: i + 1 })
-    } else {
-      break
-    }
-  }
+  const { newTitle, newHashes } = await refresh(arg)
+  arg.title = newTitle
+  const hashes = newHashes
 
-  // TODO: change the title and search for the magnetURI(hashes) if hashes.length===0 (In progress)
-  if (hashes.length === 0) {
-    const { newTitle, newHashes } = await refresh(arg)
-    arg.title = newTitle
-    hashes = newHashes
-  }
-  
   if (!aniList.some(val => val.mal_id === arg.mal_id)) {
     aniList.push({
       mal_id: arg.mal_id,
@@ -108,27 +92,41 @@ function isDuplicate(array, arg) {
 function refresh(anime) {
   return new Promise(async resolve => {
     const titleOperations = [
-      { name: 'drop-nd-rd-th', tested: false },
-      { name: 'pure', tested: false }
+      { name: 'normal' },
+      { name: 'drop-nd-rd-th' },
+      { name: 'pure' }
     ]
-    let newTitle = anime.title
+
     const newEpisodesNumber = anime.episodes
     const newHashes = []
-    let loopLength = Array.apply(null, {length: anime.episodes || 500}).map(Number.call, Number)
-
+    const loopLength = Array.apply(null, {
+      length: /* anime.episodes || */ 500
+    }).map(Number.call, Number)
+    let newTitle = anime.title
     for (const operation of titleOperations) {
-      if (operation.name === 'drop-nd-rd-th') {
-        newTitle = newTitle.replace(/season|nd|rd|th/gi, '')
-        const season = newTitle.match(/\d+/g)
-        newTitle = newTitle.replace(/\d+/gi, '')
-        newTitle += season ? ' S' + season[0] : ''
-      } else {
+      if (operation.name === 'pure') {
         newTitle = anime.title
-        newTitle = newTitle.replace(/season|nd|rd|th|\d+/gi, '')
-        loopLength = Array.apply(null, {length: 500}).map(Number.call, Number)
+        newTitle = newTitle
+          .replace(/season|nd|part|rd|th|s?\d+/gi, '')
+          .replace(/  +/g, ' ')
+      } else if (operation.name === 'normal') {
+        newTitle = anime.title
+        newTitle = newTitle
+          .replace(/season ?/i, 'S')
+          .replace(/part ?\d/i, '')
+          .replace(/\s+0+(?!\.|$)/g, ' ')
+          .replace(/  +/g, ' ')
+      } else if (operation.name === 'drop-nd-rd-th') {
+        newTitle = anime.title
+        const season = newTitle.match(/\d+/g)
+        newTitle = newTitle.replace(/season|nd|part|rd|th|s?\d+/gi, '')
+        newTitle += season ? ' S' + season[0] : ''
+        newTitle = newTitle.replace(/  +/g, ' ')
       }
 
-      for (let i of loopLength) {
+      newTitle = newTitle.trim()
+      console.log(newTitle)
+      for (const i of loopLength) {
         const hash = chooseHash(await getHashes(newTitle, i + 1), {
           title: newTitle,
           episode: i + 1
@@ -142,6 +140,7 @@ function refresh(anime) {
 
       if (newHashes.length !== 0) break
     }
+
     resolve({ newTitle, newHashes })
   })
 }
@@ -192,8 +191,6 @@ async function getHashes(title, episode) {
 }
 
 function chooseHash(hashes, { title, episode }) {
-  // Keep it sample for now
-
   title += ' ' + episode
   const options = {
     scorer: fuzz.token_set_ratio,
@@ -201,10 +198,7 @@ function chooseHash(hashes, { title, episode }) {
     full_process: true
   }
 
-  // TODO: a mush more advenced algorithm must be used to get the required title (magnetURI) 
-  // idea: process the choices to make them easier to classifier for fuzz
-
-  let choices = hashes.map(val => val.title.replace(/\s+0+(?!\.|$)/g, ' '))
+  const choices = hashes.map(val => val.title.replace(/\s+0+(?!\.|$)/g, ' '))
   const result = fuzz.extract(title, choices, options)
 
   const key =
@@ -218,12 +212,8 @@ function chooseHash(hashes, { title, episode }) {
 
 function processTitle(title, episode) {
   const quality = 720
-  title = title
-    .replace(/season ?/i, 'S')
-    .replace(/part ?\d/i, '')
-    .trim()
+  title += ' ' + episode + ' ' + quality
   title = fixedEncodeURI(title)
-  title += '+' + episode + ' ' + quality
   return title
 }
 
