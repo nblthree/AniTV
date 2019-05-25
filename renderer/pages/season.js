@@ -21,7 +21,7 @@ export default class extends Component {
       `https://api.jikan.moe/v3/season/${new Date().getYear() +
         1900}/${getSeason()}`
     )
-    const data = await response.json()
+    let data = await response.json()
 
     const animesTV = data.anime.filter(val => val.type === 'TV')
     if (!animesTV || animesTV.length === 0) return

@@ -67,7 +67,7 @@ ipcMain.on('set-followedAni', async (event, arg) => {
     arg.title = newTitle
     hashes = newHashes
   }
-
+  
   if (!aniList.some(val => val.mal_id === arg.mal_id)) {
     aniList.push({
       mal_id: arg.mal_id,
@@ -114,19 +114,21 @@ function refresh(anime) {
     let newTitle = anime.title
     const newEpisodesNumber = anime.episodes
     const newHashes = []
-    let loopLength = anime.episodes
+    let loopLength = Array.apply(null, {length: anime.episodes || 500}).map(Number.call, Number)
+
     for (const operation of titleOperations) {
       if (operation.name === 'drop-nd-rd-th') {
         newTitle = newTitle.replace(/season|nd|rd|th/gi, '')
         const season = newTitle.match(/\d+/g)
+        newTitle = newTitle.replace(/\d+/gi, '')
         newTitle += season ? ' S' + season[0] : ''
       } else {
         newTitle = anime.title
         newTitle = newTitle.replace(/season|nd|rd|th|\d+/gi, '')
-        loopLength = 500
+        loopLength = Array.apply(null, {length: 500}).map(Number.call, Number)
       }
 
-      for (let i = 0; i < loopLength; i++) {
+      for (let i of loopLength) {
         const hash = chooseHash(await getHashes(newTitle, i + 1), {
           title: newTitle,
           episode: i + 1
@@ -140,7 +142,6 @@ function refresh(anime) {
 
       if (newHashes.length !== 0) break
     }
-
     resolve({ newTitle, newHashes })
   })
 }
@@ -199,11 +200,12 @@ function chooseHash(hashes, { title, episode }) {
     returnObjects: true,
     full_process: true
   }
-  const choices = hashes.map(val => val.title)
-  const result = fuzz.extract(title, choices, options)
 
-  // TODO: a mush more advenced algorithm must be used to get the required title (magnetURI) instead of fuzz
+  // TODO: a mush more advenced algorithm must be used to get the required title (magnetURI) 
   // idea: process the choices to make them easier to classifier for fuzz
+
+  let choices = hashes.map(val => val.title.replace(/\s+0+(?!\.|$)/g, ' '))
+  const result = fuzz.extract(title, choices, options)
 
   const key =
     result.length > 1
