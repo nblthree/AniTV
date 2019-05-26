@@ -14,14 +14,13 @@ const WebTorrent = require('webtorrent')
 const Store = require('electron-store')
 
 const isProd = process.env.NODE_ENV === 'production'
-
-const client = new WebTorrent()
-const store = new Store({ name: 'This-Season' })
-
 if (!isProd) {
   const userDataPath = app.getPath('userData')
   app.setPath('userData', `${userDataPath} (development)`)
 }
+
+const client = new WebTorrent()
+const store = new Store({ name: 'This-Season' })
 
 ipcMain.on('get-season', (event, arg) => {
   event.returnValue = store.get('season') || []
