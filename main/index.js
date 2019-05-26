@@ -20,7 +20,7 @@ if (!isProd) {
 }
 
 const client = new WebTorrent()
-const store = new Store({ name: 'This-Season' })
+const store = new Store({ name: 'appData' })
 
 ipcMain.on('get-season', (event, arg) => {
   event.returnValue = store.get('season') || []
