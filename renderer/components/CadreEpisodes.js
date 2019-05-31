@@ -11,16 +11,22 @@ export default class extends Component {
 
   render() {
     return (
-      <div
-        className="cadre"
-        onClick={() => this.props.showEpisodes(this.props.anime)}
-      >
+      <div className="cadre">
         <div className="state">
           {this.state.finished_airing
             ? 'finished Airing'
             : `1/${this.props.anime.episodes}`}
         </div>
-        <div className="img" />
+        <div
+          className="reload"
+          onClick={() => this.props.reload(this.props.anime)}
+        >
+          Reload
+        </div>
+        <div
+          className="img"
+          onClick={() => this.props.showEpisodes(this.props.anime)}
+        />
         <div className="title">{this.props.anime.title}</div>
         <style jsx>{`
             .cadre {
@@ -29,17 +35,25 @@ export default class extends Component {
               position: relative;
               margin: 0 7px 15px 7px;
             }
-            .state {
+            .state, .reload {
               position: absolute;
               top: 0;
-              left: 0;
               width: 60px;
               height: 20px;
               font-size: 12px;
-              background-color: blue;
               text-align: center;
               line-height: 20px;
               color: #fff;
+            }
+            .state {
+              top: 0;
+              left: 0;
+              background-color: blue;
+            }
+            .reload {
+              right: 0;
+              background-color: red;
+              cursor: pointer;
             }
             .img {
               width: 100%;

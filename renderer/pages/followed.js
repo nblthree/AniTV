@@ -9,7 +9,7 @@ export default class extends Component {
     this.ipcRenderer = electron.ipcRenderer || false
     this.state = {
       animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
-      episodes: false,
+      followedAnime: false,
       torrent: this.ipcRenderer.sendSync('get-downloadedEpi') || {}
     }
 
@@ -17,6 +17,7 @@ export default class extends Component {
     this.download = this.download.bind(this)
     this.playEpisode = this.playEpisode.bind(this)
     this.torrentState = this.torrentState.bind(this)
+    this.reload = this.reload.bind(this)
   }
 
   componentDidMount() {
@@ -33,9 +34,9 @@ export default class extends Component {
       torrent[arg.key] = arg
       if (arg.progress === 1) {
         return {
-          episodes: this.ipcRenderer
+          followedAnime: this.ipcRenderer
             .sendSync('get-aniList')
-            .filter(val => val.mal_id === prev.episodes.mal_id)[0],
+            .filter(val => val.mal_id === prev.followedAnime.mal_id)[0],
           torrent
         }
       }
@@ -48,12 +49,16 @@ export default class extends Component {
 
   showEpisodes(anime) {
     this.setState({
-      episodes: anime
+      followedAnime: anime
         ? this.ipcRenderer
             .sendSync('get-aniList')
             .filter(val => val.mal_id === anime.mal_id)[0]
         : false
     })
+  }
+
+  reload(anime) {
+    this.ipcRenderer.send('reload-episodes', anime)
   }
 
   download(obj) {
@@ -71,7 +76,7 @@ export default class extends Component {
     return (
       <Layout>
         <div>
-          {this.state.episodes ? (
+          {this.state.followedAnime ? (
             <div className="episodes">
               <div
                 className="exit"
@@ -80,54 +85,50 @@ export default class extends Component {
                 }}
               />
               <div className="grid">
-                {this.state.episodes.episodesHash.map(val => {
+                {this.state.followedAnime.episodes.map(val => {
                   return (
-                    <div
-                      className="episode"
-                      key={val.hash.magnet + val.episode}
-                    >
+                    <div className="episode" key={val.magnet + val.number}>
                       <div className="progress">
                         <div
                           className="progress-bar"
                           style={{
-                            width: this.state.torrent[val.hash.magnet]
-                              ? this.state.torrent[val.hash.magnet].progress *
-                                  100 +
+                            width: this.state.torrent[val.magnet]
+                              ? this.state.torrent[val.magnet].progress * 100 +
                                 '%'
                               : 0,
                             backgroundColor:
-                              this.state.torrent[val.hash.magnet] &&
-                              this.state.torrent[val.hash.magnet].progress === 1
+                              this.state.torrent[val.magnet] &&
+                              this.state.torrent[val.magnet].progress === 1
                                 ? '#95ff95'
                                 : '#5555ff'
                           }}
                         />
-                        {this.state.torrent[val.hash.magnet] &&
-                        this.state.torrent[val.hash.magnet].progress < 1 ? (
+                        {this.state.torrent[val.magnet] &&
+                        this.state.torrent[val.magnet].progress < 1 ? (
                           <div className="download_speed">
                             <span>
                               {bytesConverter(
-                                this.state.torrent[val.hash.magnet].downloaded
+                                this.state.torrent[val.magnet].downloaded
                               )}
                             </span>
                             <span>
                               {bytesConverter(
-                                this.state.torrent[val.hash.magnet].speed
+                                this.state.torrent[val.magnet].speed
                               )}
                             </span>
                           </div>
                         ) : null}
                       </div>
-                      {this.state.torrent[val.hash.magnet] ? (
+                      {this.state.torrent[val.magnet] ? (
                         <video
-                          src={val.pathname}
+                          src={val.pathnames[0]}
                           onClick={e => this.playEpisode(e)}
                         />
                       ) : (
                         <button
                           onClick={() =>
                             this.download({
-                              anime: this.state.episodes,
+                              anime: this.state.followedAnime,
                               episode: val
                             })
                           }
@@ -136,7 +137,7 @@ export default class extends Component {
                         </button>
                       )}
                       <div className="title">
-                        {val.hash.title.replace(/\[.*?\]/g, '')}
+                        {val.title.replace(/\[.*?\]/g, '')}
                       </div>
                     </div>
                   )
@@ -149,6 +150,7 @@ export default class extends Component {
                 return (
                   <CadreEpisodes
                     showEpisodes={this.showEpisodes}
+                    reload={this.reload}
                     anime={val}
                     key={val.mal_id}
                   />

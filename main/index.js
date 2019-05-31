@@ -33,7 +33,7 @@ ipcMain.on('get-aniList', (event, arg) => {
   event.returnValue = store.get('aniList') || []
 })
 ipcMain.on('start-download', (event, { anime, episode }) => {
-  startDownloading(episode.hash.magnet, event, anime)
+  startDownloading(episode.magnet, event, anime)
 })
 
 ipcMain.on('get-followedAni', (event, arg) => {
@@ -47,7 +47,7 @@ ipcMain.on('set-followedAni', async (event, arg) => {
   // Episodes
   const aniList = store.get('aniList') || []
 
-  const { newTitle, newHashes } = await refresh(arg)
+  const { newTitle, newHashes } = await getAnimeEpisodes(arg)
   arg.title = newTitle
   const hashes = newHashes
 
@@ -56,12 +56,27 @@ ipcMain.on('set-followedAni', async (event, arg) => {
       mal_id: arg.mal_id,
       title: arg.title,
       episodesNumber: arg.episodes,
-      episodesHash: hashes,
+      episodes: hashes,
       watchedEpisodes: 0
     })
     store.set('aniList', aniList)
   }
 })
+
+ipcMain.on('reload-episodes', async (event, arg) => {
+  let aniList = store.get('aniList') || []
+  aniList = aniList.filter(val => val.mal_id !== arg.mal_id)
+  const results = await getHorribleSubs(arg.title)
+  aniList.push({
+    mal_id: arg.mal_id,
+    title: arg.title,
+    episodesNumber: arg.episodes,
+    episodes: results,
+    watchedEpisodes: 0
+  })
+  store.set('aniList', aniList)
+})
+
 ipcMain.on('unset-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || []
   followedAni = followedAni.filter(val => val.mal_id !== arg.mal_id)
@@ -72,10 +87,10 @@ ipcMain.on('get-downloadedEpi', async (event, arg) => {
   const aniList = store.get('aniList') || []
   const torrent = {}
   for (const val of aniList) {
-    for (const _val of val.episodesHash) {
+    for (const _val of val.episodes) {
       if (_val.pathname && (await fs.pathExists(_val.pathname))) {
-        torrent[_val.hash.magnet] = {
-          key: _val.hash.magnet,
+        torrent[_val.magnet] = {
+          key: _val.magnet,
           progress: 1
         }
       }
@@ -85,10 +100,10 @@ ipcMain.on('get-downloadedEpi', async (event, arg) => {
   event.returnValue = torrent
 })
 function isDuplicate(array, arg) {
-  return array.some(val => val.hash.magnet === arg.magnet)
+  return array.some(val => val.magnet === arg.magnet)
 }
 
-function refresh(anime) {
+function getAnimeEpisodes(anime) {
   return new Promise(async resolve => {
     const titleOperations = [
       { name: 'normal' },
@@ -99,7 +114,7 @@ function refresh(anime) {
     const newEpisodesNumber = anime.episodes
     const newHashes = []
     const loopLength = Array.apply(null, {
-      length: /* anime.episodes || */ 500
+      length: 500
     }).map(Number.call, Number)
     let newTitle = anime.title
     for (const operation of titleOperations) {
@@ -124,14 +139,14 @@ function refresh(anime) {
       }
 
       newTitle = newTitle.trim()
-      console.log(newTitle)
+
       for (const i of loopLength) {
-        const hash = chooseHash(await getHashes(newTitle, i + 1), {
+        const item = chooseHash(await getHashes(newTitle, i + 1), {
           title: newTitle,
           episode: i + 1
         })
-        if (hash && !isDuplicate(newHashes, hash)) {
-          newHashes.push({ hash, episode: i + 1 })
+        if (item && !isDuplicate(newHashes, item)) {
+          newHashes.push({ ...item, number: i + 1 })
         } else {
           break
         }
@@ -144,7 +159,30 @@ function refresh(anime) {
   })
 }
 
-async function getHashes(title, episode) {
+function getHorribleSubs(title) {
+  return new Promise(async resolve => {
+    const newTitle =
+      '[HorribleSubs] ' +
+      title
+        .replace(/season|nd|part|rd|th|s?\d+/gi, '')
+        .replace(/  +/g, ' ')
+        .trim()
+    let allMagnets = []
+    for (let i = 1; i < 50; i++) {
+      const result = await getHashes(newTitle, -1, i)
+      if (result && result.length) {
+        allMagnets.push(...result)
+      } else {
+        break
+      }
+    }
+
+    allMagnets = allMagnets.map((val, index) => ({ ...val, number: index + 1 }))
+    resolve(allMagnets.sort((a, b) => a.title.localeCompare(b.title)))
+  })
+}
+
+async function getHashes(title, episode, p = 1) {
   const hashes = await new Promise(resolve => {
     void (async () => {
       try {
@@ -154,7 +192,7 @@ async function getHashes(title, episode) {
           `https://nyaa.si/?f=0&c=1_2&q=${processTitle(
             title,
             episode
-          )}&s=seeders&o=desc`
+          )}&p=${p}&s=seeders&o=desc`
         )
 
         const result = await page.evaluate(() => {
@@ -211,7 +249,12 @@ function chooseHash(hashes, { title, episode }) {
 
 function processTitle(title, episode) {
   const quality = 720
-  title += ' ' + episode + ' ' + quality
+  if (episode !== -1) {
+    title += ' ' + episode + ' ' + quality
+  } else {
+    title += ' ' + quality
+  }
+
   title = fixedEncodeURI(title)
   return title
 }
@@ -241,19 +284,19 @@ function startDownloading(magnet, event, anime) {
     torrent.on('done', function() {
       console.log('torrent download finished')
       let aniList = store.get('aniList') || []
-      let { episodesHash } = aniList.filter(
-        val => val.mal_id === anime.mal_id
-      )[0]
-      episodesHash = episodesHash.map(val => {
-        if (val.hash.magnet === magnetURI) {
-          val.pathname = pathname + '/' + torrent.files[0].path
+      let { episodes } = aniList.filter(val => val.mal_id === anime.mal_id)[0]
+      episodes = episodes.map(val => {
+        if (val.magnet === magnetURI) {
+          for (let i = 0; i < torrent.files.length; i++) {
+            val.pathnames[i] = pathname + '/' + torrent.files[i].path
+          }
         }
 
         return val
       })
       aniList = aniList.map(val => {
         if (val.mal_id === anime.mal_id) {
-          val.episodesHash = episodesHash
+          val.episodes = episodes
         }
 
         return val
