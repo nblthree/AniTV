@@ -134,7 +134,7 @@ function getAnimeEpisodes(anime) {
         newTitle = anime.title
         const season = newTitle.match(/\d+/g)
         newTitle = newTitle.replace(/season|nd|part|rd|th|s?\d+/gi, '')
-        newTitle += season ? ' S' + season[0] : ''
+        newTitle += season ? ` S${  season[0]}` : ''
         newTitle = newTitle.replace(/  +/g, ' ')
       }
 
@@ -162,11 +162,11 @@ function getAnimeEpisodes(anime) {
 function getHorribleSubs(title) {
   return new Promise(async resolve => {
     const newTitle =
-      '[HorribleSubs] ' +
+      `[HorribleSubs] ${ 
       title
         .replace(/season|nd|part|rd|th|s?\d+/gi, '')
         .replace(/  +/g, ' ')
-        .trim()
+        .trim()}`
     let allMagnets = []
     for (let i = 1; i < 50; i++) {
       const result = await getHashes(newTitle, -1, i)
@@ -228,7 +228,7 @@ async function getHashes(title, episode, p = 1) {
 }
 
 function chooseHash(hashes, { title, episode }) {
-  title += ' ' + episode
+  title += ` ${  episode}`
   const options = {
     scorer: fuzz.token_set_ratio,
     returnObjects: true,
@@ -250,9 +250,9 @@ function chooseHash(hashes, { title, episode }) {
 function processTitle(title, episode) {
   const quality = 720
   if (episode !== -1) {
-    title += ' ' + episode + ' ' + quality
+    title += ` ${  episode  } ${  quality}`
   } else {
-    title += ' ' + quality
+    title += ` ${  quality}`
   }
 
   title = fixedEncodeURI(title)
@@ -288,7 +288,7 @@ function startDownloading(magnet, event, anime) {
       episodes = episodes.map(val => {
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
-            val.pathnames[i] = pathname + '/' + torrent.files[i].path
+            val.pathnames[i] = `${pathname  }/${  torrent.files[i].path}`
           }
         }
 

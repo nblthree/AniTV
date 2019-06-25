@@ -93,8 +93,8 @@ export default class extends Component {
                           className="progress-bar"
                           style={{
                             width: this.state.torrent[val.magnet]
-                              ? this.state.torrent[val.magnet].progress * 100 +
-                                '%'
+                              ? `${this.state.torrent[val.magnet].progress * 100 
+                                }%`
                               : 0,
                             backgroundColor:
                               this.state.torrent[val.magnet] &&
