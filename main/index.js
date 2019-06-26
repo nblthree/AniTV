@@ -22,23 +22,28 @@ if (!isProd) {
 const client = new WebTorrent()
 const store = new Store({ name: 'appData' })
 
+// Events Listening..........
+
+// get-set the animes of the current season
 ipcMain.on('get-season', (event, arg) => {
   event.returnValue = store.get('season') || []
 })
 ipcMain.on('set-season', (event, arg) => {
   store.set('season', arg)
 })
-
+// get the followed animes with additional data like episodes torrent Magnet URI
 ipcMain.on('get-aniList', (event, arg) => {
   event.returnValue = store.get('aniList') || []
 })
+// Trigger download (triggered by a click on a button)
 ipcMain.on('start-download', (event, { anime, episode }) => {
   startDownloading(episode.magnet, event, anime)
 })
-
+// get the followed animes
 ipcMain.on('get-followedAni', (event, arg) => {
   event.returnValue = store.get('followedAni') || []
 })
+// set the followed animes and update aniList 
 ipcMain.on('set-followedAni', async (event, arg) => {
   const followedAni = store.get('followedAni') || []
   followedAni.push(arg)
@@ -62,7 +67,7 @@ ipcMain.on('set-followedAni', async (event, arg) => {
     store.set('aniList', aniList)
   }
 })
-
+// Use getHorribleSubs function to search for the episodes
 ipcMain.on('reload-episodes', async (event, arg) => {
   let aniList = store.get('aniList') || []
   aniList = aniList.filter(val => val.mal_id !== arg.mal_id)
@@ -76,13 +81,13 @@ ipcMain.on('reload-episodes', async (event, arg) => {
   })
   store.set('aniList', aniList)
 })
-
+// Unfollow an anime.
 ipcMain.on('unset-followedAni', (event, arg) => {
   let followedAni = store.get('followedAni') || []
   followedAni = followedAni.filter(val => val.mal_id !== arg.mal_id)
   store.set('followedAni', followedAni)
 })
-
+// Get the downloaded episodes
 ipcMain.on('get-downloadedEpi', async (event, arg) => {
   const aniList = store.get('aniList') || []
   const torrent = {}
@@ -99,10 +104,14 @@ ipcMain.on('get-downloadedEpi', async (event, arg) => {
 
   event.returnValue = torrent
 })
+
+// Functions..............
 function isDuplicate(array, arg) {
   return array.some(val => val.magnet === arg.magnet)
 }
-
+// Perform different change on the input anime title to make sure that we doesn't get an empty array in most cases
+// Also return an array of the anime epidodes
+// Call chooseHash function and getHashes function
 function getAnimeEpisodes(anime) {
   return new Promise(async resolve => {
     const titleOperations = [
@@ -158,7 +167,7 @@ function getAnimeEpisodes(anime) {
     resolve({ newTitle, newHashes })
   })
 }
-
+// Return all episodes translated by HorribleSubs from all seasons (Match the anime title without any additions)
 function getHorribleSubs(title) {
   return new Promise(async resolve => {
     const newTitle =
@@ -181,7 +190,7 @@ function getHorribleSubs(title) {
     resolve(allMagnets.sort((a, b) => a.title.localeCompare(b.title)))
   })
 }
-
+// Scrap data from nyaa. data contain magnet URI and episode title 
 async function getHashes(title, episode, p = 1) {
   const hashes = await new Promise(resolve => {
     void (async () => {
@@ -227,6 +236,7 @@ async function getHashes(title, episode, p = 1) {
   return hashes.filter(val => val.title && val.magnet)
 }
 
+// Use fuzz search to get the right anime episode 
 function chooseHash(hashes, { title, episode }) {
   title += ` ${  episode}`
   const options = {
@@ -247,6 +257,7 @@ function chooseHash(hashes, { title, episode }) {
   return hashes[key]
 }
 
+// Add some info to the title and return the encoded title value
 function processTitle(title, episode) {
   const quality = 720
   if (episode !== -1) {
@@ -258,13 +269,13 @@ function processTitle(title, episode) {
   title = fixedEncodeURI(title)
   return title
 }
-
+// Encode the title to be used by puppeteer
 function fixedEncodeURI(str) {
   return encodeURI(str)
     .replace(/[!'()*]/g, escape)
     .replace(/%20/g, '+')
 }
-
+// Download anime episodes
 function startDownloading(magnet, event, anime) {
   const folder = anime.title
   const magnetURI = magnet
