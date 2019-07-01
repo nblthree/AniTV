@@ -3,7 +3,7 @@ const { join } = require('path');
 const { format } = require('url');
 
 // Packages
-const { BrowserWindow, app, ipcMain } = require('electron');
+const { BrowserWindow, app, ipcMain, Notification } = require('electron');
 const isDev = require('electron-is-dev');
 const prepareNext = require('electron-next');
 
@@ -72,21 +72,20 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 const inetrval = setInterval(async () => {
   let aniList = store.get('aniList') || [];
   if (!aniList.length) return;
-  aniList = await new Promise(resolve => {
-    aniList = aniList.map(async (ele, i) => {
-      const val = ele;
-      const { newTitle, newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
-      if (newHashes.length) {
-        val.episodes.push(...newHashes);
+  for (var i = 0; i < aniList.length; i++) {
+    const val = aniList[i];
+    const { newTitle, newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
+    if (newHashes.length) {
+      val.episodes.push(...newHashes);
+      if (Notification.isSupported()) {
+        let notification = new Notification({ title: 'New episode', body: val.title });
+        notification.show();
       }
-      return val;
-    });
-    if (i + 1 === aniList.length) {
-      resolve(aniList);
     }
-  });
+    aniList[i] = val;
+  }
   store.set('aniList', aniList);
-}, 1000 * 60 * 15); // 5min
+}, 1000 * 60 * 15); // 15min
 
 // Use getHorribleSubs function to search for the episodes
 ipcMain.on('reload-episodes', async (event, arg) => {
