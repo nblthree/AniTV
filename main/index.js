@@ -300,6 +300,9 @@ function startDownloading(magnet, event, anime) {
       let aniList = store.get('aniList') || [];
       let { episodes } = aniList.filter(val => val.mal_id === anime.mal_id)[0];
       episodes = episodes.map(val => {
+        if (!val.pathnames) {
+          val.pathnames = [];
+        }
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;

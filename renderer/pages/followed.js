@@ -1,74 +1,77 @@
-import electron from 'electron'
-import { Component } from 'react'
-import Layout from '../components/MyLayout'
-import CadreEpisodes from '../components/CadreEpisodes'
+import electron from 'electron';
+import { Component } from 'react';
+import Layout from '../components/MyLayout';
+import CadreEpisodes from '../components/CadreEpisodes';
 
 export default class extends Component {
   constructor(props) {
-    super(props)
-    this.ipcRenderer = electron.ipcRenderer || false
+    super(props);
+    this.ipcRenderer = electron.ipcRenderer || false;
     this.state = {
       animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
       followedAnime: false,
       torrent: this.ipcRenderer.sendSync('get-downloadedEpi') || {}
-    }
+    };
 
-    this.showEpisodes = this.showEpisodes.bind(this)
-    this.download = this.download.bind(this)
-    this.playEpisode = this.playEpisode.bind(this)
-    this.torrentState = this.torrentState.bind(this)
-    this.reload = this.reload.bind(this)
+    this.showEpisodes = this.showEpisodes.bind(this);
+    this.download = this.download.bind(this);
+    this.playEpisode = this.playEpisode.bind(this);
+    this.torrentState = this.torrentState.bind(this);
+    this.reload = this.reload.bind(this);
   }
 
   componentDidMount() {
-    this.ipcRenderer.on('torrent-progress', this.torrentState)
+    this.ipcRenderer.on('torrent-progress', this.torrentState);
   }
 
   componentWillUnmount() {
-    this.ipcRenderer.removeListener('torrent-progress', this.torrentState)
+    this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
   }
 
   torrentState(event, arg) {
     this.setState(prev => {
-      const { torrent } = prev
-      torrent[arg.key] = arg
+      const { torrent } = prev;
+      torrent[arg.key] = arg;
       if (arg.progress === 1) {
         return {
           followedAnime: this.ipcRenderer
             .sendSync('get-aniList')
             .filter(val => val.mal_id === prev.followedAnime.mal_id)[0],
           torrent
-        }
+        };
       }
 
       return {
         torrent
-      }
-    })
+      };
+    });
   }
 
   showEpisodes(anime) {
-    this.setState({
-      followedAnime: anime
-        ? this.ipcRenderer
-            .sendSync('get-aniList')
-            .filter(val => val.mal_id === anime.mal_id)[0]
-        : false
-    })
+    this.setState(
+      {
+        followedAnime: anime
+          ? this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === anime.mal_id)[0]
+          : false
+      },
+      () => {
+        console.log(this.state.followedAnime.episodes);
+      }
+    );
   }
 
   reload(anime) {
-    this.ipcRenderer.send('reload-episodes', anime)
+    this.ipcRenderer.send('reload-episodes', anime);
   }
 
   download(obj) {
-    this.ipcRenderer.send('start-download', obj)
+    this.ipcRenderer.send('start-download', obj);
   }
 
   playEpisode({ target }) {
-    target.webkitRequestFullscreen()
+    target.webkitRequestFullscreen();
     if (target.paused) {
-      target.play()
+      target.play();
     }
   }
 
@@ -81,7 +84,7 @@ export default class extends Component {
               <div
                 className="exit"
                 onClick={() => {
-                  this.showEpisodes(false)
+                  this.showEpisodes(false);
                 }}
               />
               <div className="grid">
@@ -93,8 +96,7 @@ export default class extends Component {
                           className="progress-bar"
                           style={{
                             width: this.state.torrent[val.magnet]
-                              ? `${this.state.torrent[val.magnet].progress * 100 
-                                }%`
+                              ? `${this.state.torrent[val.magnet].progress * 100}%`
                               : 0,
                             backgroundColor:
                               this.state.torrent[val.magnet] &&
@@ -106,24 +108,15 @@ export default class extends Component {
                         {this.state.torrent[val.magnet] &&
                         this.state.torrent[val.magnet].progress < 1 ? (
                           <div className="download_speed">
-                            <span>
-                              {bytesConverter(
-                                this.state.torrent[val.magnet].downloaded
-                              )}
-                            </span>
-                            <span>
-                              {bytesConverter(
-                                this.state.torrent[val.magnet].speed
-                              )}
-                            </span>
+                            <span>{bytesConverter(this.state.torrent[val.magnet].downloaded)}</span>
+                            <span>{bytesConverter(this.state.torrent[val.magnet].speed)}</span>
                           </div>
                         ) : null}
                       </div>
-                      {this.state.torrent[val.magnet] ? (
-                        <video
-                          src={val.pathnames[0]}
-                          onClick={e => this.playEpisode(e)}
-                        />
+                      {val.pathnames.length ||
+                      (this.state.torrent[val.magnet] &&
+                        this.state.torrent[val.magnet].progress < 1) ? (
+                        <video src={val.pathnames[0]} onClick={e => this.playEpisode(e)} />
                       ) : (
                         <button
                           onClick={() =>
@@ -136,11 +129,9 @@ export default class extends Component {
                           Download
                         </button>
                       )}
-                      <div className="title">
-                        {val.title.replace(/\[.*?\]/g, '')}
-                      </div>
+                      <div className="title">{val.title.replace(/\[.*?\]/g, '')}</div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -154,7 +145,7 @@ export default class extends Component {
                     anime={val}
                     key={val.mal_id}
                   />
-                )
+                );
               })}
             </div>
           )}
@@ -257,13 +248,13 @@ export default class extends Component {
           `}</style>
         </div>
       </Layout>
-    )
+    );
   }
 }
 
 function bytesConverter(bytes) {
-  let convertedValue = (bytes / 10 ** 6).toFixed(1) // MB
-  if (convertedValue < 1000) return `${convertedValue}MB`
-  convertedValue = (bytes / 10 ** 9).toFixed(1) // GB
-  return `${convertedValue}GB`
+  let convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
+  if (convertedValue < 1000) return `${convertedValue}MB`;
+  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
+  return `${convertedValue}GB`;
 }
