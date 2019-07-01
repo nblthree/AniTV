@@ -1,46 +1,49 @@
-import electron from 'electron'
-import { Component } from 'react'
-import Layout from '../components/MyLayout'
-import Cadre from '../components/Cadre'
+import electron from 'electron';
+import { Component } from 'react';
+import Layout from '../components/MyLayout';
+import Cadre from '../components/Cadre';
 
 export default class extends Component {
   constructor(props) {
-    super(props)
-    this.ipcRenderer = electron.ipcRenderer || false
+    super(props);
+    this.ipcRenderer = electron.ipcRenderer || false;
     this.state = {
       animesTV: this.ipcRenderer.sendSync('get-season') || [],
       followedAni: this.ipcRenderer.sendSync('get-followedAni') || [],
       info: false
-    }
-    this.handleInfo = this.handleInfo.bind(this)
-    this.handlefollowing = this.handlefollowing.bind(this)
+    };
+    this.handleInfo = this.handleInfo.bind(this);
+    this.handlefollowing = this.handlefollowing.bind(this);
   }
 
   async componentDidMount() {
-    const response = await fetch(
-      `https://api.jikan.moe/v3/season/${new Date().getYear() +
-        1900}/${getSeason()}`
-    )
-    const data = await response.json()
+    try {
+      const response = await fetch(
+        `https://api.jikan.moe/v3/season/${new Date().getYear() + 1900}/${getSeason()}`
+      );
+      const data = await response.json();
 
-    const animesTV = data.anime.filter(val => val.type === 'TV')
-    if (!animesTV || animesTV.length === 0) return
-    this.setState({ animesTV })
-    if (this.ipcRenderer) {
-      this.ipcRenderer.send('set-season', this.state.animesTV)
+      const animesTV = data.anime.filter(val => val.type === 'TV');
+      if (!animesTV || animesTV.length === 0) return;
+      this.setState({ animesTV });
+      if (this.ipcRenderer) {
+        this.ipcRenderer.send('set-season', this.state.animesTV);
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   handleInfo(info) {
-    this.setState({ info })
+    this.setState({ info });
   }
 
   handlefollowing({ anime, follow }) {
     if (this.ipcRenderer) {
       if (follow) {
-        this.ipcRenderer.send('set-followedAni', anime)
+        this.ipcRenderer.send('set-followedAni', anime);
       } else {
-        this.ipcRenderer.send('unset-followedAni', anime)
+        this.ipcRenderer.send('unset-followedAni', anime);
       }
     }
   }
@@ -54,7 +57,7 @@ export default class extends Component {
               <div
                 className="exit"
                 onClick={() => {
-                  this.handleInfo(false)
+                  this.handleInfo(false);
                 }}
               />
               <div className="title">{this.state.info.title}</div>
@@ -62,10 +65,7 @@ export default class extends Component {
               <div className="data">
                 <div>Airing Start: {this.state.info.airing_start}</div>
                 <div>Episodes: {this.state.info.episodes}</div>
-                <div>
-                  Genres:{' '}
-                  {this.state.info.genres.map(val => val.name).join(', ')}
-                </div>
+                <div>Genres: {this.state.info.genres.map(val => val.name).join(', ')}</div>
                 <div>MAL Rating: {this.state.info.score}</div>
               </div>
             </div>
@@ -79,7 +79,7 @@ export default class extends Component {
                 anime={val}
                 key={val.mal_id}
               />
-            )
+            );
           })}
           <style jsx>{`
             #grid {
@@ -144,37 +144,37 @@ export default class extends Component {
           `}</style>
         </div>
       </Layout>
-    )
+    );
   }
 }
 
 function getSeason() {
-  const month = new Date().getMonth() + 1
-  let season = ''
+  const month = new Date().getMonth() + 1;
+  let season = '';
   switch (month) {
     case 1:
     case 2:
     case 3:
-      season = 'winter'
-      break
+      season = 'winter';
+      break;
     case 4:
     case 5:
     case 6:
-      season = 'spring'
-      break
+      season = 'spring';
+      break;
     case 7:
     case 8:
     case 9:
-      season = 'summer'
-      break
+      season = 'summer';
+      break;
     case 10:
     case 11:
     case 12:
-      season = 'fall'
-      break
+      season = 'fall';
+      break;
     default:
-      season = 'spring'
+      season = 'spring';
   }
 
-  return season
+  return season;
 }
