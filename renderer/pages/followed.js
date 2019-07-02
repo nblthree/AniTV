@@ -10,7 +10,8 @@ export default class extends Component {
     this.state = {
       animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
       followedAnime: false,
-      torrent: this.ipcRenderer.sendSync('get-downloadedEpi') || {}
+      torrent: this.ipcRenderer.sendSync('get-downloadedEpi') || {},
+      unfound: []
     };
 
     this.showEpisodes = this.showEpisodes.bind(this);
@@ -18,6 +19,7 @@ export default class extends Component {
     this.playEpisode = this.playEpisode.bind(this);
     this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
+    this.handleError = this.handleError.bind(this);
   }
 
   componentDidMount() {
@@ -48,16 +50,11 @@ export default class extends Component {
   }
 
   showEpisodes(anime) {
-    this.setState(
-      {
-        followedAnime: anime
-          ? this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === anime.mal_id)[0]
-          : false
-      },
-      () => {
-        console.log(this.state.followedAnime.episodes);
-      }
-    );
+    this.setState({
+      followedAnime: anime
+        ? this.ipcRenderer.sendSync('get-aniList').filter(val => val.mal_id === anime.mal_id)[0]
+        : false
+    });
   }
 
   reload(anime) {
@@ -73,6 +70,10 @@ export default class extends Component {
     if (target.paused) {
       target.play();
     }
+  }
+
+  handleError(path) {
+    this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
   }
 
   render() {
@@ -113,10 +114,15 @@ export default class extends Component {
                           </div>
                         ) : null}
                       </div>
-                      {val.pathnames.length ||
-                      (this.state.torrent[val.magnet] &&
-                        this.state.torrent[val.magnet].progress < 1) ? (
-                        <video src={val.pathnames[0]} onClick={e => this.playEpisode(e)} />
+                      {(val.pathnames.length ||
+                        (this.state.torrent[val.magnet] &&
+                          this.state.torrent[val.magnet].progress < 1)) &&
+                      !this.state.unfound.includes(val.pathnames[0]) ? (
+                        <video
+                          onError={e => this.handleError(val.pathnames[0])}
+                          src={val.pathnames[0]}
+                          onClick={e => this.playEpisode(e)}
+                        />
                       ) : (
                         <button
                           onClick={() =>
