@@ -321,27 +321,26 @@ function startDownloading(magnet, event, anime) {
     })
     torrent.on('done', function() {
       console.log('torrent download finished');
+
       let aniList = store.get('aniList') || [];
       let { episodes } = aniList.filter(val => val.mal_id === anime.mal_id)[0];
+
       episodes = episodes.map(val => {
-        /*if (!val.pathnames) {
-          val.pathnames = [];
-        }*/
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
           }
         }
-
         return val;
       });
+
       aniList = aniList.map(val => {
         if (val.mal_id === anime.mal_id) {
           val.episodes = episodes;
         }
-
         return val;
       });
+      
       store.set('aniList', aniList);
     });
     torrent.on('error', function(err) {
