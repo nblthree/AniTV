@@ -5,7 +5,9 @@
   "main": "main/index.js",
   "scripts": {
     "dev": "electron .",
-    "build": "next build renderer && next export renderer",
+    "build": "yarn build-renderer && yarn build-app",
+    "build-app": "build",
+    "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "dist": "npm run build && build --dir",
     "lint": "eslint --fix --ignore-path .gitignore --ext jsx,js ."
   },
