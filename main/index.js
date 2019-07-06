@@ -22,18 +22,18 @@ if (!isProd) {
 const client = new WebTorrent();
 const store = new Store({ name: 'appData' });
 
-const isWin = process.platform === "win32";
+const isWin = process.platform === 'win32';
 // Events Listening..........
 
 // get-set the animes of the current season
-ipcMain.on('get-season', (event, arg) => {
+ipcMain.on('get-season', event => {
   event.returnValue = store.get('season') || [];
 });
 ipcMain.on('set-season', (event, arg) => {
   store.set('season', arg);
 });
 // get the followed animes with additional data like episodes torrent Magnet URI
-ipcMain.on('get-aniList', (event, arg) => {
+ipcMain.on('get-aniList', event => {
   event.returnValue = store.get('aniList') || [];
 });
 // Trigger download (triggered by a click on a button)
@@ -41,7 +41,7 @@ ipcMain.on('start-download', (event, { anime, episode }) => {
   startDownloading(episode.magnet, event, anime);
 });
 // get the followed animes
-ipcMain.on('get-followedAni', (event, arg) => {
+ipcMain.on('get-followedAni', event => {
   event.returnValue = store.get('followedAni') || [];
 });
 // set the followed animes and update aniList
@@ -70,16 +70,16 @@ ipcMain.on('set-followedAni', async (event, arg) => {
   }
 });
 // Check for new episodes each 15 minutes
-const inetrval = setInterval(async () => {
-  let aniList = store.get('aniList') || [];
+setInterval(async () => {
+  const aniList = store.get('aniList') || [];
   if (!aniList.length) return;
-  for (var i = 0; i < aniList.length; i++) {
+  for (let i = 0; i < aniList.length; i++) {
     const val = aniList[i];
-    const { newTitle, newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
+    const { newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
     if (newHashes.length) {
       val.episodes.push(...newHashes);
       if (Notification.isSupported()) {
-        let notification = new Notification({ title: 'New episode', body: val.title });
+        const notification = new Notification({ title: 'New episode', body: val.title });
         notification.show();
       }
     }
@@ -91,10 +91,10 @@ const inetrval = setInterval(async () => {
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];
   aniList = aniList.map(val => {
-    if(val.mal_id === arg.mal_id){
-      val.watchedEpisodes.push(arg.episode.number)
+    if (val.mal_id === arg.mal_id) {
+      val.watchedEpisodes.push(arg.episode.number);
     }
-    return val
+    return val;
   });
   store.set('aniList', aniList);
 });
@@ -121,14 +121,14 @@ ipcMain.on('unset-followedAni', (event, arg) => {
   store.set('followedAni', followedAni);
 });
 // Get the downloaded episodes
-ipcMain.on('get-downloadedEpi', async (event, arg) => {
+ipcMain.on('get-downloadedEpi', async event => {
   const aniList = store.get('aniList') || [];
   const torrent = {};
   for (const val of aniList) {
-    for (const _val of val.episodes) {
-      if (_val.pathname && (await fs.pathExists(_val.pathname))) {
-        torrent[_val.magnet] = {
-          key: _val.magnet,
+    for (const valPrim of val.episodes) {
+      if (valPrim.pathname && (await fs.pathExists(valPrim.pathname))) {
+        torrent[valPrim.magnet] = {
+          key: valPrim.magnet,
           progress: 1
         };
       }
@@ -149,11 +149,8 @@ function getAnimeEpisodes(anime, ep = -1) {
   return new Promise(async resolve => {
     const titleOperations = [{ name: 'normal' }, { name: 'drop-nd-rd-th' }, { name: 'pure' }];
 
-    const newEpisodesNumber = anime.episodes;
     const newHashes = [];
-    let loopLength = Array.apply(null, {
-      length: 500
-    }).map(Number.call, Number);
+    let loopLength = 500;
     let newTitle = anime.title;
     for (const operation of titleOperations) {
       if (operation.name === 'pure') {
@@ -176,9 +173,9 @@ function getAnimeEpisodes(anime, ep = -1) {
 
       newTitle = newTitle.trim();
       if (ep !== -1) {
-        loopLength = [ep - 1];
+        loopLength = ep - 1;
       }
-      for (const i of loopLength) {
+      for (let i = 0; i < loopLength; i++) {
         const item = chooseHash(await getHashes(newTitle, i + 1), {
           title: newTitle,
           episode: i + 1
@@ -295,7 +292,7 @@ function fixedEncodeURI(str) {
 function startDownloading(magnet, event, anime) {
   let folder = anime.title;
   // Replace illegal characters on windows
-  if(isWin){
+  if (isWin) {
     folder = folder.replace(/[/?%*:|"<>]/g, ' ').trim();
   }
   const magnetURI = magnet;
@@ -311,14 +308,7 @@ function startDownloading(magnet, event, anime) {
       progress: 0
     });
     console.log('Client is downloading:', torrent.infoHash);
-    
-    torrent.files.forEach(function (file) {
-      file.getBuffer(async function (err, buffer) {
-        if (err) throw err
-        // Encode test video to VP8.
-        let filename_ext = file.path.split('/').pop()
-        let filename = filename_ext.split('.').slice(0, filename_ext.split('.').length-1).join('.')
-    })
+
     torrent.on('done', function() {
       console.log('torrent download finished');
 
@@ -340,7 +330,7 @@ function startDownloading(magnet, event, anime) {
         }
         return val;
       });
-      
+
       store.set('aniList', aniList);
     });
     torrent.on('error', function(err) {
@@ -387,8 +377,3 @@ app.on('ready', async () => {
 
 // Quit the app once all windows are closed
 app.on('window-all-closed', app.quit);
-
-// listen the channel `message` and resend the received message to the renderer process
-ipcMain.on('message', (event, message) => {
-  event.sender.send('message', message);
-});

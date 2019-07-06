@@ -1,29 +1,24 @@
-import { Component } from 'react'
+import { Component } from 'react';
 
 export default class extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      followed: this.props.anime,
       finished_airing: false
-    }
+    };
   }
 
   render() {
     return (
       <div className="cadre">
         <div className="state">
-          {this.state.finished_airing
-            ? 'finished Airing'
-            : `1/${this.props.anime.episodes}`}
+          {this.state.finished_airing ? 'finished Airing' : `1/${this.props.anime.episodes}`}
         </div>
-        <div
-          className="reload"
-          onClick={() => this.props.reload(this.props.anime)}
-        >
+        <div role="button" className="reload" onClick={() => this.props.reload(this.props.anime)}>
           Reload
         </div>
         <div
+          role="button"
           className="img"
           onClick={() => this.props.showEpisodes(this.props.anime)}
         />
@@ -99,6 +94,6 @@ export default class extends Component {
             }
         `}</style>
       </div>
-    )
+    );
   }
 }

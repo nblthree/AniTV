@@ -3,6 +3,37 @@ import { Component } from 'react';
 import Layout from '../components/MyLayout';
 import Cadre from '../components/Cadre';
 
+function getSeason() {
+  const month = new Date().getMonth() + 1;
+  let season = '';
+  switch (month) {
+    case 1:
+    case 2:
+    case 3:
+      season = 'winter';
+      break;
+    case 4:
+    case 5:
+    case 6:
+      season = 'spring';
+      break;
+    case 7:
+    case 8:
+    case 9:
+      season = 'summer';
+      break;
+    case 10:
+    case 11:
+    case 12:
+      season = 'fall';
+      break;
+    default:
+      season = 'spring';
+  }
+
+  return season;
+}
+
 export default class extends Component {
   constructor(props) {
     super(props);
@@ -55,6 +86,7 @@ export default class extends Component {
           {this.state.info ? (
             <div id="info">
               <div
+                role="button"
                 className="exit"
                 onClick={() => {
                   this.handleInfo(false);
@@ -70,7 +102,7 @@ export default class extends Component {
               </div>
             </div>
           ) : null}
-          {this.state.animesTV.map((val, index) => {
+          {this.state.animesTV.map(val => {
             return (
               <Cadre
                 followedAni={this.state.followedAni}
@@ -146,35 +178,4 @@ export default class extends Component {
       </Layout>
     );
   }
-}
-
-function getSeason() {
-  const month = new Date().getMonth() + 1;
-  let season = '';
-  switch (month) {
-    case 1:
-    case 2:
-    case 3:
-      season = 'winter';
-      break;
-    case 4:
-    case 5:
-    case 6:
-      season = 'spring';
-      break;
-    case 7:
-    case 8:
-    case 9:
-      season = 'summer';
-      break;
-    case 10:
-    case 11:
-    case 12:
-      season = 'fall';
-      break;
-    default:
-      season = 'spring';
-  }
-
-  return season;
 }

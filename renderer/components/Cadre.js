@@ -1,13 +1,11 @@
-import { Component } from 'react'
+import { Component } from 'react';
 
 export default class extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      followed: this.props.followedAni.some(
-        val => val.mal_id === this.props.anime.mal_id
-      )
-    }
+      followed: this.props.followedAni.some(val => val.mal_id === this.props.anime.mal_id)
+    };
   }
 
   render() {
@@ -17,19 +15,21 @@ export default class extends Component {
         <div className="img" />
         <div className="info">
           <button
+            type="button"
             onClick={() => {
-              this.props.info(this.props.anime)
+              this.props.info(this.props.anime);
             }}
           >
             Info
           </button>
           <button
+            type="button"
             onClick={() => {
               this.props.follow({
                 anime: this.props.anime,
                 follow: !this.state.followed
-              })
-              this.setState(prev => ({ followed: !prev.followed }))
+              });
+              this.setState(prev => ({ followed: !prev.followed }));
             }}
           >
             {this.state.followed ? 'Unfollow' : 'Follow'}
@@ -99,6 +99,6 @@ export default class extends Component {
             }
         `}</style>
       </div>
-    )
+    );
   }
 }

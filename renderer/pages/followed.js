@@ -3,6 +3,20 @@ import { Component } from 'react';
 import Layout from '../components/MyLayout';
 import CadreEpisodes from '../components/CadreEpisodes';
 
+function bytesConverter(bytes) {
+  let convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
+  if (convertedValue < 1000) return `${convertedValue}MB`;
+  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
+  return `${convertedValue}GB`;
+}
+
+function playEpisode({ target }) {
+  target.webkitRequestFullscreen();
+  if (target.paused) {
+    target.play();
+  }
+}
+
 export default class extends Component {
   constructor(props) {
     super(props);
@@ -16,7 +30,6 @@ export default class extends Component {
 
     this.showEpisodes = this.showEpisodes.bind(this);
     this.download = this.download.bind(this);
-    this.playEpisode = this.playEpisode.bind(this);
     this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
     this.handleError = this.handleError.bind(this);
@@ -67,22 +80,15 @@ export default class extends Component {
     this.ipcRenderer.send('start-download', obj);
   }
 
-  playEpisode({ target }) {
-    target.webkitRequestFullscreen();
-    if (target.paused) {
-      target.play();
-    }
-  }
-
   handleError(path) {
     this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
   }
 
-  timeupdate({mal_id, episode, time}) {
-  	if(time > time*0.8 && !this.watched){
-  		this.watched = true;
-  		this.ipcRenderer.send('watched-episode', {mal_id, episode});
-  	}
+  timeupdate({ mal_id, episode, time }) {
+    if (time > time * 0.8 && !this.watched) {
+      this.watched = true;
+      this.ipcRenderer.send('watched-episode', { mal_id, episode });
+    }
   }
 
   render() {
@@ -92,6 +98,7 @@ export default class extends Component {
           {this.state.followedAnime ? (
             <div className="episodes">
               <div
+                role="button"
                 className="exit"
                 onClick={() => {
                   this.showEpisodes(false);
@@ -123,17 +130,24 @@ export default class extends Component {
                           </div>
                         ) : null}
                       </div>
-                      {(val.pathnames.length && !this.state.unfound.includes(val.pathnames[0]) ||
-                        (this.state.torrent[val.magnet] &&
-                          this.state.torrent[val.magnet].progress < 1))  ? (
+                      {(val.pathnames.length && !this.state.unfound.includes(val.pathnames[0])) ||
+                      (this.state.torrent[val.magnet] &&
+                        this.state.torrent[val.magnet].progress < 1) ? (
                         <video
-                          onError={e => this.handleError(val.pathnames[0])}
-                          onTimeUpdate={e => this.timeupdate({mal_id: this.state.followedAnime.mal_id, episode: val, time: e.target.currentTime})}
+                          onError={() => this.handleError(val.pathnames[0])}
+                          onTimeUpdate={e =>
+                            this.timeupdate({
+                              mal_id: this.state.followedAnime.mal_id,
+                              episode: val,
+                              time: e.target.currentTime
+                            })
+                          }
                           src={val.pathnames[0]}
-                          onClick={e => this.playEpisode(e)}
+                          onClick={e => playEpisode(e)}
                         />
                       ) : (
                         <button
+                          type="button"
                           onClick={() =>
                             this.download({
                               anime: this.state.followedAnime,
@@ -152,7 +166,7 @@ export default class extends Component {
             </div>
           ) : (
             <div className="grid">
-              {this.state.animesTV.map((val, index) => {
+              {this.state.animesTV.map(val => {
                 return (
                   <CadreEpisodes
                     showEpisodes={this.showEpisodes}
@@ -265,11 +279,4 @@ export default class extends Component {
       </Layout>
     );
   }
-}
-
-function bytesConverter(bytes) {
-  let convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
-  if (convertedValue < 1000) return `${convertedValue}MB`;
-  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
-  return `${convertedValue}GB`;
 }
