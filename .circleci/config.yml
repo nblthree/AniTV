@@ -1,0 +1,71 @@
+version: 2
+jobs:
+
+  install:
+    macos:
+      xcode: '9.2.0'
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "yarn.lock" }}
+      - run:
+          name: Installing Dependencies
+          command: yarn --ignore-engines
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "yarn.lock" }}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+
+  lint:
+    macos:
+      xcode: '9.2.0'
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Linting Code
+          command: yarn test-lint
+
+  build:
+    macos:
+      xcode: '9.2.0'
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Building Renderer
+          command: yarn build-renderer
+      - run:
+          name: Bundling (and Deploying) Application
+          command: yarn build-app
+      - store_artifacts:
+          path: dist
+
+workflows:
+  version: 2
+  unscheduled:
+    jobs:
+      - install:
+          filters:
+            tags:
+              only: /.*/
+      - lint:
+          requires:
+            - install
+          filters:
+            tags:
+              only: /.*/
+      - build:
+          requires:
+            - lint
+          filters:
+            tags:
+              only: /.*/

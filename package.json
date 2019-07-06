@@ -9,6 +9,7 @@
     "build-app": "build",
     "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "dist": "npm run build && build --dir",
+    "lint-test": "eslint --ignore-path .gitignore --ext jsx,js .",
     "lint": "eslint --fix --ignore-path .gitignore --ext jsx,js ."
   },
   "build": {
