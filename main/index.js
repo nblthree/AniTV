@@ -13,7 +13,6 @@ const puppeteer = require('puppeteer');
 const WebTorrent = require('webtorrent');
 const Store = require('electron-store');
 
-
 const isProd = process.env.NODE_ENV === 'production';
 if (!isProd) {
   const userDataPath = app.getPath('userData');
@@ -302,7 +301,7 @@ function startDownloading(magnet, event, anime) {
   const magnetURI = magnet;
   const downloadPath = app.getPath('downloads');
   const pathname = downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder;
-  console.log(pathname)
+
   client.add(magnetURI, { path: pathname }, function(torrent) {
     event.sender.send('torrent-progress', {
       key: magnet,
