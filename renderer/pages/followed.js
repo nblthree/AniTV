@@ -20,6 +20,8 @@ export default class extends Component {
     this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
     this.handleError = this.handleError.bind(this);
+    this.timeupdate = this.timeupdate.bind(this);
+    this.watched = false;
   }
 
   componentDidMount() {
@@ -76,6 +78,13 @@ export default class extends Component {
     this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
   }
 
+  timeupdate({mal_id, episode, time}) {
+  	if(time > time*0.8 && !this.watched){
+  		this.watched = true;
+  		this.ipcRenderer.send('watched-episode', {mal_id, episode});
+  	}
+  }
+
   render() {
     return (
       <Layout>
@@ -114,12 +123,12 @@ export default class extends Component {
                           </div>
                         ) : null}
                       </div>
-                      {(val.pathnames.length ||
+                      {(val.pathnames.length && !this.state.unfound.includes(val.pathnames[0]) ||
                         (this.state.torrent[val.magnet] &&
-                          this.state.torrent[val.magnet].progress < 1)) &&
-                      !this.state.unfound.includes(val.pathnames[0]) ? (
+                          this.state.torrent[val.magnet].progress < 1))  ? (
                         <video
                           onError={e => this.handleError(val.pathnames[0])}
+                          onTimeUpdate={e => this.timeupdate({mal_id: this.state.followedAnime.mal_id, episode: val, time: e.target.currentTime})}
                           src={val.pathnames[0]}
                           onClick={e => this.playEpisode(e)}
                         />

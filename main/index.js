@@ -22,6 +22,7 @@ if (!isProd) {
 const client = new WebTorrent();
 const store = new Store({ name: 'appData' });
 
+const isWin = process.platform === "win32";
 // Events Listening..........
 
 // get-set the animes of the current season
@@ -62,7 +63,7 @@ ipcMain.on('set-followedAni', async (event, arg) => {
       title: arg.title,
       episodesNumber: arg.episodes,
       episodes: hashes,
-      watchedEpisodes: 0,
+      watchedEpisodes: [],
       lastUpdate: Date.now()
     });
     store.set('aniList', aniList);
@@ -87,6 +88,17 @@ const inetrval = setInterval(async () => {
   store.set('aniList', aniList);
 }, 1000 * 60 * 15); // 15min
 
+ipcMain.on('watched-episode', (event, arg) => {
+  let aniList = store.get('aniList') || [];
+  aniList = aniList.map(val => {
+    if(val.mal_id === arg.mal_id){
+      val.watchedEpisodes.push(arg.episode.number)
+    }
+    return val
+  });
+  store.set('aniList', aniList);
+});
+
 // Use getHorribleSubs function to search for the episodes
 ipcMain.on('reload-episodes', async (event, arg) => {
   let aniList = store.get('aniList') || [];
@@ -97,7 +109,7 @@ ipcMain.on('reload-episodes', async (event, arg) => {
     title: arg.title,
     episodesNumber: arg.episodes,
     episodes: results,
-    watchedEpisodes: 0,
+    watchedEpisodes: [],
     lastUpdate: Date.now()
   });
   store.set('aniList', aniList);
@@ -172,7 +184,7 @@ function getAnimeEpisodes(anime, ep = -1) {
           episode: i + 1
         });
         if (item && !isDuplicate(newHashes, item)) {
-          newHashes.push({ ...item, number: i + 1 });
+          newHashes.push({ ...item, number: i + 1, pathnames: [] });
         } else {
           break;
         }
@@ -201,7 +213,7 @@ function getHorribleSubs(title) {
       }
     }
 
-    allMagnets = allMagnets.map((val, index) => ({ ...val, number: index + 1 }));
+    allMagnets = allMagnets.map((val, index) => ({ ...val, number: index + 1, pathnames: [] }));
     resolve(allMagnets.sort((a, b) => a.title.localeCompare(b.title)));
   });
 }
@@ -281,10 +293,15 @@ function fixedEncodeURI(str) {
 }
 // Download anime episodes
 function startDownloading(magnet, event, anime) {
-  const folder = anime.title;
+  let folder = anime.title;
+  // Replace illegal characters on windows
+  if(isWin){
+    folder = folder.replace(/[/?%*:|"<>]/g, ' ').trim();
+  }
   const magnetURI = magnet;
   const downloadPath = app.getPath('downloads');
   const pathname = downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder;
+
   client.add(magnetURI, { path: pathname }, function(torrent) {
     event.sender.send('torrent-progress', {
       key: magnet,
@@ -294,30 +311,36 @@ function startDownloading(magnet, event, anime) {
       progress: 0
     });
     console.log('Client is downloading:', torrent.infoHash);
-
+    
+    torrent.files.forEach(function (file) {
+      file.getBuffer(async function (err, buffer) {
+        if (err) throw err
+        // Encode test video to VP8.
+        let filename_ext = file.path.split('/').pop()
+        let filename = filename_ext.split('.').slice(0, filename_ext.split('.').length-1).join('.')
+    })
     torrent.on('done', function() {
       console.log('torrent download finished');
+
       let aniList = store.get('aniList') || [];
       let { episodes } = aniList.filter(val => val.mal_id === anime.mal_id)[0];
+
       episodes = episodes.map(val => {
-        if (!val.pathnames) {
-          val.pathnames = [];
-        }
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
           }
         }
-
         return val;
       });
+
       aniList = aniList.map(val => {
         if (val.mal_id === anime.mal_id) {
           val.episodes = episodes;
         }
-
         return val;
       });
+      
       store.set('aniList', aniList);
     });
     torrent.on('error', function(err) {
