@@ -2,8 +2,6 @@ version: 2
 jobs:
 
   install:
-    macos:
-      xcode: '9.2.0'
     working_directory: ~/repo
     steps:
       - checkout
@@ -23,8 +21,6 @@ jobs:
             - node_modules
 
   lint:
-    macos:
-      xcode: '9.2.0'
     steps:
       - checkout
       - attach_workspace:
@@ -34,8 +30,6 @@ jobs:
           command: yarn test-lint
 
   build:
-    macos:
-      xcode: '9.2.0'
     steps:
       - checkout
       - attach_workspace:
