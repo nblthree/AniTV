@@ -12,6 +12,14 @@ const fuzz = require('fuzzball');
 const puppeteer = require('puppeteer');
 const WebTorrent = require('webtorrent');
 const Store = require('electron-store');
+const ffbinaries = require('ffbinaries');
+const ffmpeg = require('fluent-ffmpeg');
+
+var dest = __dirname + '/bin';
+ffbinaries.downloadBinaries({ destination: dest }, function() {
+  console.log('Downloaded ffmpeg binaries to ' + dest + '.');
+});
+ffmpeg.setFfmpegPath('./bin/ffmpeg');
 
 const isProd = process.env.NODE_ENV === 'production';
 if (!isProd) {
@@ -288,6 +296,32 @@ function fixedEncodeURI(str) {
     .replace(/[!'()*]/g, escape)
     .replace(/%20/g, '+');
 }
+
+function extractSubtitleTrack(inputFile) {
+  try {
+    var outputFile = inputFile.replace(/\.[^.]*$/, '') + '-subs.srt';
+
+    var command = ffmpeg(inputFile, { logger: console.debug });
+    command
+      .on('start', function(command) {
+        console.log('Start: ', command);
+      })
+      .noAudio()
+      .noVideo()
+      .outputOptions('-map', '0:s:0', '-c:s', 'srt')
+      .output(outputFile)
+      .on('error', function(err, stdout, stderr) {
+        console.log('An error occurred: ' + err.message, err, stderr);
+      })
+      .on('end', function() {
+        console.log('Processing finished !');
+        callback();
+      });
+    command.run();
+  } catch (e) {
+    console.log(e);
+  }
+}
 // Download anime episodes
 function startDownloading(magnet, event, anime) {
   let folder = anime.title;
@@ -319,6 +353,8 @@ function startDownloading(magnet, event, anime) {
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
+            //let comand = ffmpeg(val.pathnames[i])
+            extractSubtitleTrack(val.pathnames[i]);
           }
         }
         return val;
