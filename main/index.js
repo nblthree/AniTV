@@ -16,10 +16,16 @@ const ffbinaries = require('ffbinaries');
 const ffmpeg = require('fluent-ffmpeg');
 
 var dest = __dirname + '/bin';
-ffbinaries.downloadBinaries({ destination: dest }, function() {
-  console.log('Downloaded ffmpeg binaries to ' + dest + '.');
+fs.pathExists('main/bin/ffmpeg.exe', (err, exists) => {
+  console.log(exists);
+  if (!exists) {
+    ffbinaries.downloadBinaries({ destination: dest }, function() {
+      ffmpeg.setFfmpegPath('main/bin/ffmpeg.exe');
+    });
+  } else {
+    ffmpeg.setFfmpegPath('main/bin/ffmpeg.exe');
+  }
 });
-ffmpeg.setFfmpegPath('./bin/ffmpeg');
 
 const isProd = process.env.NODE_ENV === 'production';
 if (!isProd) {
@@ -315,7 +321,6 @@ function extractSubtitleTrack(inputFile) {
       })
       .on('end', function() {
         console.log('Processing finished !');
-        callback();
       });
     command.run();
   } catch (e) {
