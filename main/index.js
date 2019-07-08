@@ -15,7 +15,7 @@ const Store = require('electron-store');
 const ffbinaries = require('ffbinaries');
 const ffmpeg = require('fluent-ffmpeg');
 
-var dest = __dirname + '/bin';
+const dest = `${__dirname}/bin`;
 fs.pathExists('main/bin/ffmpeg.exe', (err, exists) => {
   console.log(exists);
   if (!exists) {
@@ -305,19 +305,19 @@ function fixedEncodeURI(str) {
 
 function extractSubtitleTrack(inputFile) {
   try {
-    var outputFile = inputFile.replace(/\.[^.]*$/, '') + '-subs.srt';
+    const outputFile = `${inputFile.replace(/\.[^.]*$/, '')}-subs.srt`;
 
-    var command = ffmpeg(inputFile, { logger: console.debug });
+    const command = ffmpeg(inputFile, { logger: console.debug });
     command
-      .on('start', function(command) {
-        console.log('Start: ', command);
+      .on('start', function(cmd) {
+        console.log('Start: ', cmd);
       })
       .noAudio()
       .noVideo()
       .outputOptions('-map', '0:s:0', '-c:s', 'srt')
       .output(outputFile)
       .on('error', function(err, stdout, stderr) {
-        console.log('An error occurred: ' + err.message, err, stderr);
+        console.log(`An error occurred: ${err.message}`, err, stderr);
       })
       .on('end', function() {
         console.log('Processing finished !');
@@ -358,7 +358,7 @@ function startDownloading(magnet, event, anime) {
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
-            //let comand = ffmpeg(val.pathnames[i])
+            // let comand = ffmpeg(val.pathnames[i])
             extractSubtitleTrack(val.pathnames[i]);
           }
         }
