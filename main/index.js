@@ -17,7 +17,6 @@ const ffmpeg = require('fluent-ffmpeg');
 
 const dest = `${__dirname}/bin`;
 fs.pathExists('main/bin/ffmpeg.exe', (err, exists) => {
-  console.log(exists);
   if (!exists) {
     ffbinaries.downloadBinaries({ destination: dest }, function() {
       ffmpeg.setFfmpegPath('main/bin/ffmpeg.exe');
@@ -165,7 +164,7 @@ function isDuplicate(array, arg) {
 // Perform different change on the input anime title to make sure that we doesn't get an empty array in most cases
 // Also return an array of the anime epidodes
 // Call chooseHash function and getHashes function
-function getAnimeEpisodes(anime, ep = -1) {
+function getAnimeEpisodes(anime, ep = 0) {
   return new Promise(async resolve => {
     const titleOperations = [{ name: 'normal' }, { name: 'drop-nd-rd-th' }, { name: 'pure' }];
 
@@ -192,16 +191,16 @@ function getAnimeEpisodes(anime, ep = -1) {
       }
 
       newTitle = newTitle.trim();
-      if (ep !== -1) {
-        loopLength = ep - 1;
+      if (ep !== 0) {
+        loopLength = ep + 1;
       }
-      for (let i = 0; i < loopLength; i++) {
-        const item = chooseHash(await getHashes(newTitle, i + 1), {
+      for (let i = ep; i < loopLength; i++) {
+        const item = chooseHash(await getHashes(newTitle, ep ? i : i + 1), {
           title: newTitle,
-          episode: i + 1
+          episode: ep ? i : i + 1
         });
         if (item && !isDuplicate(newHashes, item)) {
-          newHashes.push({ ...item, number: i + 1, pathnames: [] });
+          newHashes.push({ ...item, number: ep ? i : i + 1, pathnames: [] });
         } else {
           break;
         }
