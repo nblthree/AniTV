@@ -144,8 +144,33 @@ export default class extends Component {
                           }
                           src={val.pathnames[0]}
                           onClick={e => playEpisode(e)}
-                        />
+                        >
+                          <track
+                            default
+                            src={`${val.pathnames[0].replace(/\.[^.]*$/, '')}-subs.srt`}
+                            kind="subtitles"
+                            srcLang="en"
+                            label="English"
+                          />
+                        </video>
                       ) : (
+                        /*
+                        <video
+                          onClick={e => playEpisode(e)}
+                        >
+                        	<source src={val.pathnames[0]} type={'video/' + val.pathnames[0].match(/[^.]*$/)[0]}
+                        	  onError={(e) => {console.log(e); this.handleError(val.pathnames[0])}}
+	                          onTimeUpdate={e =>
+	                            this.timeupdate({
+	                              mal_id: this.state.followedAnime.mal_id,
+	                              episode: val,
+	                              time: e.target.currentTime
+	                            })
+	                          }
+	                        />
+                        	<track src={`${val.pathnames[0].replace(/\.[^.]*$/, '')}-subs.srt`} kind="subtitles" srcLang="en" label="English" />
+                        </video>
+                        */
                         <button
                           type="button"
                           onClick={() =>

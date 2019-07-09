@@ -85,19 +85,26 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 });
 // Check for new episodes each 15 minutes
 setInterval(async () => {
+  const followedAni = store.get('followedAni') || [];
   const aniList = store.get('aniList') || [];
-  if (!aniList.length) return;
-  for (let i = 0; i < aniList.length; i++) {
-    const val = aniList[i];
+  if (!followedAni.length) return;
+  for (let i = 0; i < followedAni.length; i++) {
+    let val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
     const { newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
-    if (newHashes.length) {
-      val.episodes.push(...newHashes);
+    if (newHashes.length && val.episodes.every(e => e.magnet !== newHashes[0].magnet)) {
+      val.episodes.push(newHashes[0]);
       if (Notification.isSupported()) {
         const notification = new Notification({ title: 'New episode', body: val.title });
         notification.show();
       }
+      aniList.map(ele => {
+        if (ele.mal_id === followedAni[i].mal_id) {
+          return val;
+        } else {
+          return ele;
+        }
+      });
     }
-    aniList[i] = val;
   }
   store.set('aniList', aniList);
 }, 1000 * 60 * 15); // 15min
@@ -105,7 +112,7 @@ setInterval(async () => {
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];
   aniList = aniList.map(val => {
-    if (val.mal_id === arg.mal_id) {
+    if (val.mal_id === arg.mal_id && !val.watchedEpisodes.includes(arg.episode.number)) {
       val.watchedEpisodes.push(arg.episode.number);
     }
     return val;
