@@ -67,14 +67,6 @@ function Layout(props) {
         #window > div:nth-child(1)::-webkit-scrollbar-track-piece {
           background-color: #333333;
         }
-        #window > div:nth-child(2) {
-          width: 100%;
-          height: 100%;
-          position: absolute;
-          left: 0;
-          top: 0;
-          background: url(/static/bg_mesh_black.png);
-        }
       `}</style>
     </>
   );
