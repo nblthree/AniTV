@@ -86,7 +86,7 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 // Check for new episodes each 15 minutes
 setInterval(async () => {
   const followedAni = store.get('followedAni') || [];
-  const aniList = store.get('aniList') || [];
+  let aniList = store.get('aniList') || [];
   if (!followedAni.length) return;
   for (let i = 0; i < followedAni.length; i++) {
     let val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
@@ -97,7 +97,7 @@ setInterval(async () => {
         const notification = new Notification({ title: 'New episode', body: val.title });
         notification.show();
       }
-      aniList.map(ele => {
+      aniList = aniList.map(ele => {
         if (ele.mal_id === followedAni[i].mal_id) {
           return val;
         } else {
