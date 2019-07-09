@@ -89,7 +89,7 @@ setInterval(async () => {
   let aniList = store.get('aniList') || [];
   if (!followedAni.length) return;
   for (let i = 0; i < followedAni.length; i++) {
-    let val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
+    const val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
     const { newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
     if (newHashes.length && val.episodes.every(e => e.magnet !== newHashes[0].magnet)) {
       val.episodes.push(newHashes[0]);
@@ -100,9 +100,8 @@ setInterval(async () => {
       aniList = aniList.map(ele => {
         if (ele.mal_id === followedAni[i].mal_id) {
           return val;
-        } else {
-          return ele;
         }
+        return ele;
       });
     }
   }
