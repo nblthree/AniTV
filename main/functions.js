@@ -85,34 +85,8 @@ function chooseHash(hashes, { title, episode }) {
   return hashes[key];
 }
 
-// extract subtitles from downloaded video
-function extractSubtitleTrack(inputFile, ffmpeg) {
-  try {
-    const outputFile = `${inputFile.replace(/\.[^.]*$/, '')}-subs.srt`;
-
-    const command = ffmpeg(inputFile, { logger: console.debug });
-    command
-      .on('start', function(cmd) {
-        console.log('Start: ', cmd);
-      })
-      .noAudio()
-      .noVideo()
-      .outputOptions('-map', '0:s:0', '-c:s', 'srt')
-      .output(outputFile)
-      .on('error', function(err, stdout, stderr) {
-        console.log(`An error occurred: ${err.message}`, err, stderr);
-      })
-      .on('end', function() {
-        console.log('Processing finished !');
-      });
-    command.run();
-  } catch (e) {
-    console.log(e);
-  }
-}
-
 // Download anime episodes
-function startDownloading(magnet, event, anime, { store, ffmpeg, downloadPath }) {
+function startDownloading(magnet, event, anime, { store, downloadPath }) {
   let folder = anime.title;
   // Replace illegal characters on windows
   if (isWin) {
@@ -141,8 +115,6 @@ function startDownloading(magnet, event, anime, { store, ffmpeg, downloadPath })
         if (val.magnet === magnetURI) {
           for (let i = 0; i < torrent.files.length; i++) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
-            // let comand = ffmpeg(val.pathnames[i])
-            extractSubtitleTrack(val.pathnames[i], ffmpeg);
           }
         }
         return val;

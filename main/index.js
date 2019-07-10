@@ -9,8 +9,6 @@ const prepareNext = require('electron-next');
 
 const fs = require('fs-extra');
 const Store = require('electron-store');
-const ffbinaries = require('ffbinaries');
-const ffmpeg = require('fluent-ffmpeg');
 
 const isProd = process.env.NODE_ENV === 'production';
 if (!isProd) {
@@ -20,17 +18,6 @@ if (!isProd) {
 const store = new Store({ name: 'appData' });
 
 // const isWin = process.platform === 'win32';
-const dest = `${__dirname}/bin`;
-
-fs.pathExists('main/bin/ffmpeg.exe', (err, exists) => {
-  if (!exists) {
-    ffbinaries.downloadBinaries({ destination: dest }, function() {
-      ffmpeg.setFfmpegPath('main/bin/ffmpeg.exe');
-    });
-  } else {
-    ffmpeg.setFfmpegPath('main/bin/ffmpeg.exe');
-  }
-});
 
 const { getHorribleSubs, getAnimeEpisodes, startDownloading } = require('./functions');
 
@@ -50,7 +37,6 @@ ipcMain.on('get-aniList', event => {
 ipcMain.on('start-download', (event, { anime, episode }) => {
   startDownloading(episode.magnet, event, anime, {
     store,
-    ffmpeg,
     downloadPath: app.getPath('downloads')
   });
 });
