@@ -1,4 +1,4 @@
-import electron from 'electron';
+import electron, { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/MyLayout';
 import CadreEpisodes from '../components/CadreEpisodes';
@@ -8,13 +8,6 @@ function bytesConverter(bytes) {
   if (convertedValue < 1000) return `${convertedValue}MB`;
   convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
   return `${convertedValue}GB`;
-}
-
-function playEpisode({ target }) {
-  target.webkitRequestFullscreen();
-  if (target.paused) {
-    target.play();
-  }
 }
 
 export default class extends Component {
@@ -33,8 +26,7 @@ export default class extends Component {
     this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
     this.handleError = this.handleError.bind(this);
-    this.timeupdate = this.timeupdate.bind(this);
-    this.watched = false;
+    this.playEpisode = this.playEpisode.bind(this);
   }
 
   componentDidMount() {
@@ -84,9 +76,9 @@ export default class extends Component {
     this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
   }
 
-  timeupdate({ mal_id, episode, time }) {
-    if (time > time * 0.8 && !this.watched) {
-      this.watched = true;
+  playEpisode({ mal_id, episode, target }) {
+    if (!this.state.unfound.includes(target.src)) {
+      shell.openExternal(target.src);
       this.ipcRenderer.send('watched-episode', { mal_id, episode });
     }
   }
@@ -135,28 +127,15 @@ export default class extends Component {
                         this.state.torrent[val.magnet].progress < 1) ? (
                         <video
                           onError={() => this.handleError(val.pathnames[0])}
-                          onTimeUpdate={e =>
-                            this.timeupdate({
+                          src={val.pathnames[0]}
+                          onClick={e => {
+                            this.playEpisode({
                               mal_id: this.state.followedAnime.mal_id,
                               episode: val,
-                              time: e.target.currentTime
-                            })
-                          }
-                          src={val.pathnames[0]}
-                          onClick={e => playEpisode(e)}
-                        >
-                          <track
-                            default
-                            src={
-                              val.pathnames[0]
-                                ? `${val.pathnames[0].replace(/\.[^.]*$/, '')}-subs.srt`
-                                : null
-                            }
-                            kind="subtitles"
-                            srcLang="en"
-                            label="English"
-                          />
-                        </video>
+                              target: e.target
+                            });
+                          }}
+                        />
                       ) : (
                         <button
                           type="button"
