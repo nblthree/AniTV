@@ -1,7 +1,9 @@
 {
   "name": "AniTV",
   "productName": "AniTV",
+  "description": "Download and watch your preferred seasonal anime and get notified whenever a new episode is available",
   "version": "1.0.0",
+  "repository": "MarchWorks/AniTV",
   "main": "main/index.js",
   "scripts": {
     "dev": "electron .",
@@ -13,12 +15,10 @@
     "lint": "eslint --fix --ignore-path .gitignore --ext jsx,js ."
   },
   "build": {
-    "asar": false,
-    "extraResources": [
-      {
-        "from": "renderer/out",
-        "to": "app/renderer"
-      }
+    "files": [
+      "**/*",
+      "!renderer",
+      "renderer/out"
     ]
   },
   "author": "MarchWorks<edel.f.wool@gmail.com>",
