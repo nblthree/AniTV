@@ -77,7 +77,7 @@ export default class extends Component {
                 return null;
               }
               return (
-                <div className="group">
+                <div className="group" key={val.mal_id}>
                   <h2 className="animeTitle">{val.title}</h2>
                   <div className="grid">
                     {val.episodes.map(ep => {
