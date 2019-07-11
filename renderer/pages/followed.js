@@ -1,4 +1,4 @@
-import electron, { shell } from 'electron';
+import { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/MyLayout';
 import CadreEpisodes from '../components/CadreEpisodes';
@@ -13,11 +13,11 @@ function bytesConverter(bytes) {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.ipcRenderer = electron.ipcRenderer || false;
+    this.ipcRenderer = global.ipcRenderer || false;
     this.state = {
-      animesTV: this.ipcRenderer.sendSync('get-followedAni') || [],
+      animesTV: (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) || [],
       followedAnime: false,
-      torrent: this.ipcRenderer.sendSync('get-downloadedEpi') || {},
+      torrent: (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) || {},
       unfound: []
     };
 
