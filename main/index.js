@@ -92,7 +92,7 @@ setInterval(async () => {
     }
   }
   store.set('aniList', aniList);
-}, 1000 * 60 * 15); // 15min
+}, 1000 * 60 * 5); // 15min
 
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];

@@ -37,15 +37,6 @@ export default class extends Component {
     this.setState(prev => {
       const { torrent } = prev;
       torrent[arg.key] = arg;
-      if (arg.progress === 1) {
-        return {
-          followedAnime: this.ipcRenderer
-            .sendSync('get-aniList')
-            .filter(val => val.mal_id === prev.followedAnime.mal_id)[0],
-          torrent
-        };
-      }
-
       return {
         torrent
       };
