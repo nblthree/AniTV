@@ -1,4 +1,3 @@
-import electron from 'electron';
 import { Component } from 'react';
 import Layout from '../components/MyLayout';
 import Cadre from '../components/Cadre';
@@ -37,7 +36,7 @@ function getSeason() {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.ipcRenderer = electron.ipcRenderer || false;
+    this.ipcRenderer = global.ipcRenderer;
     this.state = {
       animesTV: this.ipcRenderer.sendSync('get-season') || [],
       followedAni: this.ipcRenderer.sendSync('get-followedAni') || [],

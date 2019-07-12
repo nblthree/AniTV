@@ -13,7 +13,7 @@ function bytesConverter(bytes) {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.ipcRenderer = global.ipcRenderer || false;
+    this.ipcRenderer = global.ipcRenderer;
     this.state = {
       animesTV: (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) || [],
       followedAnime: false,

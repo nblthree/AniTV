@@ -12,7 +12,7 @@ function bytesConverter(bytes) {
 export default class extends Component {
   constructor(props) {
     super(props);
-    this.ipcRenderer = global.ipcRenderer || false;
+    this.ipcRenderer = global.ipcRenderer;
     this.state = {
       aniList: (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || [],
       torrent: (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) || {},
