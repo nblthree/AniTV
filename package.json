@@ -53,6 +53,6 @@
     "fs-extra": "^8.0.1",
     "fuzzball": "^1.2.2",
     "puppeteer": "^1.16.0",
-    "webtorrent": "^0.103.1"
+    "webtorrent": "^0.105.0"
   }
 }
