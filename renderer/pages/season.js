@@ -38,8 +38,8 @@ export default class extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      animesTV: this.ipcRenderer.sendSync('get-season') || [],
-      followedAni: this.ipcRenderer.sendSync('get-followedAni') || [],
+      animesTV: (this.ipcRenderer && this.ipcRenderer.sendSync('get-season')) || [],
+      followedAni: (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) || [],
       info: false
     };
     this.handleInfo = this.handleInfo.bind(this);
