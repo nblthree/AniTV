@@ -1,10 +1,12 @@
 import { Component } from 'react';
 
-export default class extends Component {
+export default class Cadre extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      followed: this.props.followedAni.some(val => val.mal_id === this.props.anime.mal_id)
+      followed: this.props.followedAni.some(
+        val => val.mal_id === this.props.anime.mal_id
+      )
     };
   }
 

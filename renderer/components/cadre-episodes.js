@@ -1,6 +1,6 @@
 import { Component } from 'react';
 
-export default class extends Component {
+export default class CadreEpisode extends Component {
   constructor(props) {
     super(props);
     this.state = {

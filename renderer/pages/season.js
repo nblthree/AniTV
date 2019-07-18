@@ -1,6 +1,6 @@
 import { Component } from 'react';
-import Layout from '../components/MyLayout';
-import Cadre from '../components/Cadre';
+import Layout from '../components/layout';
+import Cadre from '../components/cadre';
 
 function getSeason() {
   const month = new Date().getMonth() + 1;
@@ -33,13 +33,16 @@ function getSeason() {
   return season;
 }
 
-export default class extends Component {
+export default class Season extends Component {
   constructor(props) {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      animesTV: (this.ipcRenderer && this.ipcRenderer.sendSync('get-season')) || [],
-      followedAni: (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) || [],
+      animesTV:
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-season')) || [],
+      followedAni:
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) ||
+        [],
       info: false
     };
     this.handleInfo = this.handleInfo.bind(this);
@@ -49,7 +52,8 @@ export default class extends Component {
   async componentDidMount() {
     try {
       const response = await fetch(
-        `https://api.jikan.moe/v3/season/${new Date().getYear() + 1900}/${getSeason()}`
+        `https://api.jikan.moe/v3/season/${new Date().getYear() +
+          1900}/${getSeason()}`
       );
       const data = await response.json();
 
@@ -96,7 +100,10 @@ export default class extends Component {
               <div className="data">
                 <div>Airing Start: {this.state.info.airing_start}</div>
                 <div>Episodes: {this.state.info.episodes}</div>
-                <div>Genres: {this.state.info.genres.map(val => val.name).join(', ')}</div>
+                <div>
+                  Genres:{' '}
+                  {this.state.info.genres.map(val => val.name).join(', ')}
+                </div>
                 <div>MAL Rating: {this.state.info.score}</div>
               </div>
             </div>
