@@ -37,7 +37,10 @@ async function getHashes(title, episode, p = 1) {
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.goto(
-          `https://nyaa.si/?f=0&c=1_2&q=${processTitle(title, episode)}&p=${p}&s=seeders&o=desc`
+          `https://nyaa.si/?f=0&c=1_2&q=${processTitle(
+            title,
+            episode
+          )}&p=${p}&s=seeders&o=desc`
         );
 
         const result = await page.evaluate(() => {
@@ -48,8 +51,16 @@ async function getHashes(title, episode, p = 1) {
 
           const data = document.querySelectorAll('tr');
           const items = [...data].map(item => ({
-            title: grabFromItem(item, 'td:nth-of-type(2) a:not([class])', 'title'),
-            magnet: grabFromItem(item, 'td:nth-of-type(3) a:nth-of-type(2)', 'href')
+            title: grabFromItem(
+              item,
+              'td:nth-of-type(2) a:not([class])',
+              'title'
+            ),
+            magnet: grabFromItem(
+              item,
+              'td:nth-of-type(3) a:nth-of-type(2)',
+              'href'
+            )
           }));
           return items;
         });
@@ -92,8 +103,10 @@ function startDownloading(magnet, event, anime, { store, downloadPath }) {
   if (isWin) {
     folder = folder.replace(/[/?%*:|"<>]/g, ' ').trim();
   }
+
   const magnetURI = magnet;
-  const pathname = downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder;
+  const pathname =
+    downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder;
 
   client.add(magnetURI, { path: pathname }, function(torrent) {
     event.sender.send('torrent-progress', {
@@ -117,6 +130,7 @@ function startDownloading(magnet, event, anime, { store, downloadPath }) {
             val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
           }
         }
+
         return val;
       });
 
@@ -124,6 +138,7 @@ function startDownloading(magnet, event, anime, { store, downloadPath }) {
         if (val.mal_id === anime.mal_id) {
           val.episodes = episodes;
         }
+
         return val;
       });
 
@@ -149,7 +164,11 @@ function startDownloading(magnet, event, anime, { store, downloadPath }) {
 // Call chooseHash function and getHashes function
 function getAnimeEpisodes(anime, ep = 0) {
   return new Promise(async resolve => {
-    const titleOperations = [{ name: 'normal' }, { name: 'drop-nd-rd-th' }, { name: 'pure' }];
+    const titleOperations = [
+      { name: 'normal' },
+      { name: 'drop-nd-rd-th' },
+      { name: 'pure' }
+    ];
 
     const newHashes = [];
     let loopLength = 500;
@@ -157,7 +176,9 @@ function getAnimeEpisodes(anime, ep = 0) {
     for (const operation of titleOperations) {
       if (operation.name === 'pure') {
         newTitle = anime.title;
-        newTitle = newTitle.replace(/season|nd|part|rd|th|s?\d+/gi, '').replace(/  +/g, ' ');
+        newTitle = newTitle
+          .replace(/season|nd|part|rd|th|s?\d+/gi, '')
+          .replace(/  +/g, ' ');
       } else if (operation.name === 'normal') {
         newTitle = anime.title;
         newTitle = newTitle
@@ -177,6 +198,7 @@ function getAnimeEpisodes(anime, ep = 0) {
       if (ep !== 0) {
         loopLength = ep + 1;
       }
+
       for (let i = ep; i < loopLength; i++) {
         const item = chooseHash(await getHashes(newTitle, ep ? i : i + 1), {
           title: newTitle,
@@ -206,14 +228,18 @@ function getHorribleSubs(title) {
     let allMagnets = [];
     for (let i = 1; i < 50; i++) {
       const result = await getHashes(newTitle, -1, i);
-      if (result && result.length) {
+      if (result && result.length > 0) {
         allMagnets.push(...result);
       } else {
         break;
       }
     }
 
-    allMagnets = allMagnets.map((val, index) => ({ ...val, number: index + 1, pathnames: [] }));
+    allMagnets = allMagnets.map((val, index) => ({
+      ...val,
+      number: index + 1,
+      pathnames: []
+    }));
     resolve(allMagnets.sort((a, b) => a.title.localeCompare(b.title)));
   });
 }

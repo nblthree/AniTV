@@ -1,6 +1,6 @@
 import { shell } from 'electron';
 import { Component } from 'react';
-import Layout from '../components/MyLayout';
+import Layout from '../components/layout';
 
 function bytesConverter(bytes) {
   let convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
@@ -9,13 +9,16 @@ function bytesConverter(bytes) {
   return `${convertedValue}GB`;
 }
 
-export default class extends Component {
+export default class Start extends Component {
   constructor(props) {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      aniList: (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || [],
-      torrent: (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) || {},
+      aniList:
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || [],
+      torrent:
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
+        {},
       unfound: []
     };
 
@@ -67,6 +70,7 @@ export default class extends Component {
               if (val.episodes.length === val.watchedEpisodes.length) {
                 return null;
               }
+
               return (
                 <div className="group" key={val.mal_id}>
                   <h2 className="animeTitle">{val.title}</h2>
@@ -75,6 +79,7 @@ export default class extends Component {
                       if (val.watchedEpisodes.includes(ep.number)) {
                         return null;
                       }
+
                       return (
                         <div className="episode" key={ep.magnet + ep.number}>
                           <div className="progress">
@@ -82,7 +87,8 @@ export default class extends Component {
                               className="progress-bar"
                               style={{
                                 width: this.state.torrent[ep.magnet]
-                                  ? `${this.state.torrent[ep.magnet].progress * 100}%`
+                                  ? `${this.state.torrent[ep.magnet].progress *
+                                      100}%`
                                   : 0,
                                 backgroundColor:
                                   this.state.torrent[ep.magnet] &&
@@ -95,13 +101,20 @@ export default class extends Component {
                             this.state.torrent[ep.magnet].progress < 1 ? (
                               <div className="download_speed">
                                 <span>
-                                  {bytesConverter(this.state.torrent[ep.magnet].downloaded)}
+                                  {bytesConverter(
+                                    this.state.torrent[ep.magnet].downloaded
+                                  )}
                                 </span>
-                                <span>{bytesConverter(this.state.torrent[ep.magnet].speed)}</span>
+                                <span>
+                                  {bytesConverter(
+                                    this.state.torrent[ep.magnet].speed
+                                  )}
+                                </span>
                               </div>
                             ) : null}
                           </div>
-                          {(ep.pathnames.length && !this.state.unfound.includes(ep.pathnames[0])) ||
+                          {(ep.pathnames.length > 0 &&
+                            !this.state.unfound.includes(ep.pathnames[0])) ||
                           (this.state.torrent[ep.magnet] &&
                             this.state.torrent[ep.magnet].progress < 1) ? (
                             <video
@@ -128,7 +141,9 @@ export default class extends Component {
                               Download
                             </button>
                           )}
-                          <div className="title">{ep.title.replace(/\[.*?\]/g, '')}</div>
+                          <div className="title">
+                            {ep.title.replace(/\[.*?\]/g, '')}
+                          </div>
                         </div>
                       );
                     })}

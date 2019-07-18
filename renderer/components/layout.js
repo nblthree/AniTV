@@ -1,4 +1,4 @@
-import Menu from './MainMenu';
+import Menu from './main-menu';
 
 function Layout(props) {
   return (
@@ -28,7 +28,7 @@ function Layout(props) {
         code {
           font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
         }
-        body > div {
+        #__next {
           width: 100%;
           height: 100%;
           min-width: 800px;

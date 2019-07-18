@@ -15,11 +15,16 @@ if (!isProd) {
   const userDataPath = app.getPath('userData');
   app.setPath('userData', `${userDataPath} (development)`);
 }
+
 const store = new Store({ name: 'appData' });
 
-// const isWin = process.platform === 'win32';
+// Const isWin = process.platform === 'win32';
 
-const { getHorribleSubs, getAnimeEpisodes, startDownloading } = require('./functions');
+const {
+  getHorribleSubs,
+  getAnimeEpisodes,
+  startDownloading
+} = require('./functions');
 
 // Events Listening..........
 // get-set the animes of the current season
@@ -29,7 +34,7 @@ ipcMain.on('get-season', event => {
 ipcMain.on('set-season', (event, arg) => {
   store.set('season', arg);
 });
-// get the followed animes with additional data like episodes torrent Magnet URI
+// Get the followed animes with additional data like episodes torrent Magnet URI
 ipcMain.on('get-aniList', event => {
   event.returnValue = store.get('aniList') || [];
 });
@@ -40,11 +45,11 @@ ipcMain.on('start-download', (event, { anime, episode }) => {
     downloadPath: app.getPath('downloads')
   });
 });
-// get the followed animes
+// Get the followed animes
 ipcMain.on('get-followedAni', event => {
   event.returnValue = store.get('followedAni') || [];
 });
-// set the followed animes and update aniList
+// Set the followed animes and update aniList
 ipcMain.on('set-followedAni', async (event, arg) => {
   const followedAni = store.get('followedAni') || [];
   followedAni.push(arg);
@@ -73,33 +78,46 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 setInterval(async () => {
   const followedAni = store.get('followedAni') || [];
   let aniList = store.get('aniList') || [];
-  if (!followedAni.length) return;
+  if (followedAni.length === 0) return;
   for (let i = 0; i < followedAni.length; i++) {
     const val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
     const { newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
-    if (newHashes.length && val.episodes.every(e => e.magnet !== newHashes[0].magnet)) {
+    if (
+      newHashes.length > 0 &&
+      val.episodes.every(e => e.magnet !== newHashes[0].magnet)
+    ) {
       val.episodes.push(newHashes[0]);
       if (Notification.isSupported()) {
-        const notification = new Notification({ title: 'New episode', body: val.title });
+        const notification = new Notification({
+          title: 'New episode',
+          body: val.title
+        });
         notification.show();
       }
+
       aniList = aniList.map(ele => {
         if (ele.mal_id === followedAni[i].mal_id) {
           return val;
         }
+
         return ele;
       });
     }
   }
+
   store.set('aniList', aniList);
 }, 1000 * 60 * 5); // 15min
 
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];
   aniList = aniList.map(val => {
-    if (val.mal_id === arg.mal_id && !val.watchedEpisodes.includes(arg.episode.number)) {
+    if (
+      val.mal_id === arg.mal_id &&
+      !val.watchedEpisodes.includes(arg.episode.number)
+    ) {
       val.watchedEpisodes.push(arg.episode.number);
     }
+
     return val;
   });
   store.set('aniList', aniList);
