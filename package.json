@@ -57,7 +57,6 @@
       "no-await-in-loop": 0,
       "no-negated-condition": 0,
       "no-void": 0,
-      "unicorn/filename-case": 0,
       "react/react-in-jsx-scope": 0,
       "react/prop-types": 0,
       "import/no-unresolved": 0,
