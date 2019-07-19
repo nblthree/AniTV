@@ -43,8 +43,10 @@ export default class Season extends Component {
       followedAni:
         (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) ||
         [],
-      info: false
+      info: false,
+      onLoad: false
     };
+    this.dataLoading = this.dataLoading.bind(this);
     this.handleInfo = this.handleInfo.bind(this);
     this.handlefollowing = this.handlefollowing.bind(this);
   }
@@ -66,6 +68,16 @@ export default class Season extends Component {
     } catch (error) {
       console.log(error);
     }
+
+    this.ipcRenderer.on('onload', this.dataLoading);
+  }
+
+  componentWillUnmount() {
+    this.ipcRenderer.removeListener('onload', this.dataLoading);
+  }
+
+  dataLoading(event, onLoad) {
+    this.setState({ onLoad });
   }
 
   handleInfo(info) {
@@ -75,6 +87,7 @@ export default class Season extends Component {
   handlefollowing({ anime, follow }) {
     if (this.ipcRenderer) {
       if (follow) {
+        this.setState({ onLoad: true });
         this.ipcRenderer.send('set-followedAni', anime);
       } else {
         this.ipcRenderer.send('unset-followedAni', anime);
@@ -86,8 +99,19 @@ export default class Season extends Component {
     return (
       <Layout>
         <div id="grid">
+          {this.state.onLoad ? (
+            <div className="onload absoluteDiv">
+              <div>
+                <div className="spinner">
+                  <div className="double-bounce1"></div>
+                  <div className="double-bounce2"></div>
+                </div>
+                <div className="ld">Loading Data...</div>
+              </div>
+            </div>
+          ) : null}
           {this.state.info ? (
-            <div id="info">
+            <div className="info absoluteDiv">
               <div
                 role="button"
                 className="exit"
@@ -126,8 +150,8 @@ export default class Season extends Component {
               justify-content: space-around;
               position: relative;
             }
-            #info {
-              position: fixed; // absolute
+            .absoluteDiv {
+              position: fixed;
               top: 0;
               left: 0;
               width: 100%;
@@ -136,6 +160,46 @@ export default class Season extends Component {
               background-color: #000000de;
               padding: 0 50px;
               box-sizing: border-box;
+            }
+            .onload {
+              display: flex;
+            }
+            .onload > div {
+              margin: auto;
+            }
+            .ld {
+              font-size: 1.2rem;
+              margin-top: 20px;
+            }
+            .spinner {
+              width: 40px;
+              height: 40px;
+              position: relative;
+              margin: auto;
+            }
+            .double-bounce1,
+            .double-bounce2 {
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+              background-color: #ececec;
+              opacity: 0.6;
+              position: absolute;
+              top: 0;
+              left: 0;
+              animation: sk-bounce 2s infinite ease-in-out;
+            }
+            .double-bounce2 {
+              animation-delay: -1s;
+            }
+            @keyframes sk-bounce {
+              0%,
+              100% {
+                transform: scale(0);
+              }
+              50% {
+                transform: scale(1);
+              }
             }
             .title {
               text-align: center;
