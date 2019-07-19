@@ -73,6 +73,8 @@ ipcMain.on('set-followedAni', async (event, arg) => {
     });
     store.set('aniList', aniList);
   }
+
+  event.sender.send('onload', false);
 });
 // Check for new episodes each 15 minutes
 setInterval(async () => {
