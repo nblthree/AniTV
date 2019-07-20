@@ -102,6 +102,7 @@ setInterval(async () => {
     }
 
     if (
+      newHashes &&
       newHashes.length > 0 &&
       val.episodes.every(e => e.magnet !== newHashes[0].magnet)
     ) {
@@ -125,7 +126,7 @@ setInterval(async () => {
   }
 
   store.set('aniList', aniList);
-}, 1000 * 60 * 5); // 15min
+}, 1000 * 60 * 15); // 15min
 
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];
