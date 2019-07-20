@@ -67,7 +67,7 @@ async function getHashes(title, episode, p = 1) {
         await browser.close();
         resolve(result);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         resolve(getHashes(title, episode));
       }
     })();
@@ -200,10 +200,16 @@ function getAnimeEpisodes(anime, ep = 0) {
       }
 
       for (let i = ep; i < loopLength; i++) {
-        const item = chooseHash(await getHashes(newTitle, ep ? i : i + 1), {
-          title: newTitle,
-          episode: ep ? i : i + 1
-        });
+        let item;
+        try {
+          item = chooseHash(await getHashes(newTitle, ep ? i : i + 1), {
+            title: newTitle,
+            episode: ep ? i : i + 1
+          });
+        } catch (error) {
+          console.error(error);
+        }
+
         if (item && !isDuplicate(newHashes, item)) {
           newHashes.push({ ...item, number: ep ? i : i + 1, pathnames: [] });
         } else {
@@ -227,7 +233,13 @@ function getHorribleSubs(title) {
       .trim()}`;
     let allMagnets = [];
     for (let i = 1; i < 50; i++) {
-      const result = await getHashes(newTitle, -1, i);
+      let result;
+      try {
+        result = await getHashes(newTitle, -1, i);
+      } catch (error) {
+        console.error(error);
+      }
+
       if (result && result.length > 0) {
         allMagnets.push(...result);
       } else {

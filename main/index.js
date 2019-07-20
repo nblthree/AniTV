@@ -58,7 +58,16 @@ ipcMain.on('set-followedAni', async (event, arg) => {
   // Episodes
   const aniList = store.get('aniList') || [];
 
-  const { newTitle, newHashes } = await getAnimeEpisodes(arg);
+  let newTitle;
+  let newHashes;
+  try {
+    const result = await getAnimeEpisodes(arg);
+    newTitle = result.newTitle;
+    newHashes = result.newHashes;
+  } catch (error) {
+    console.error(error);
+  }
+
   arg.title = newTitle;
   const hashes = newHashes;
 
@@ -83,8 +92,17 @@ setInterval(async () => {
   if (followedAni.length === 0) return;
   for (let i = 0; i < followedAni.length; i++) {
     const val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
-    const { newHashes } = await getAnimeEpisodes(val, val.episodes.length + 1);
+    if (!val) return;
+    let newHashes = [];
+    try {
+      newHashes = await getAnimeEpisodes(val, val.episodes.length + 1)
+        .newHashes;
+    } catch (error) {
+      console.error(error);
+    }
+
     if (
+      newHashes &&
       newHashes.length > 0 &&
       val.episodes.every(e => e.magnet !== newHashes[0].magnet)
     ) {
@@ -108,7 +126,7 @@ setInterval(async () => {
   }
 
   store.set('aniList', aniList);
-}, 1000 * 60 * 5); // 15min
+}, 1000 * 60 * 15); // 15min
 
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];
@@ -129,7 +147,13 @@ ipcMain.on('watched-episode', (event, arg) => {
 ipcMain.on('reload-episodes', async (event, arg) => {
   let aniList = store.get('aniList') || [];
   aniList = aniList.filter(val => val.mal_id !== arg.mal_id);
-  const results = await getHorribleSubs(arg.title);
+  let results;
+  try {
+    results = await getHorribleSubs(arg.title);
+  } catch (error) {
+    console.error(error);
+  }
+
   aniList.push({
     mal_id: arg.mal_id,
     title: arg.title,
@@ -152,7 +176,14 @@ ipcMain.on('get-downloadedEpi', async event => {
   const torrent = {};
   for (const val of aniList) {
     for (const valPrim of val.episodes) {
-      if (valPrim.pathname && (await fs.pathExists(valPrim.pathname))) {
+      let exist;
+      try {
+        exist = await fs.pathExists(valPrim.pathname);
+      } catch (error) {
+        console.error(error);
+      }
+
+      if (valPrim.pathname && exist) {
         torrent[valPrim.magnet] = {
           key: valPrim.magnet,
           progress: 1
