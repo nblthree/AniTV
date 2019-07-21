@@ -29,6 +29,7 @@ export default class Followed extends Component {
     this.download = this.download.bind(this);
     this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
+    this.setAsWatched = this.setAsWatched.bind(this);
     this.handleError = this.handleError.bind(this);
     this.playEpisode = this.playEpisode.bind(this);
   }
@@ -72,6 +73,10 @@ export default class Followed extends Component {
 
   reload(anime) {
     this.ipcRenderer.send('reload-episodes', anime);
+  }
+
+  setAsWatched(anime) {
+    this.ipcRenderer.send('move-to-watched', anime);
   }
 
   download(obj) {
@@ -180,6 +185,7 @@ export default class Followed extends Component {
                   <CadreEpisodes
                     showEpisodes={this.showEpisodes}
                     reload={this.reload}
+                    setAsWatched={this.setAsWatched}
                     anime={val}
                     key={val.mal_id}
                   />

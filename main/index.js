@@ -95,8 +95,8 @@ setInterval(async () => {
     if (!val) return;
     let newHashes = [];
     try {
-      newHashes = await getAnimeEpisodes(val, val.episodes.length + 1)
-        .newHashes;
+      const result = await getAnimeEpisodes(val, val.episodes.length + 1);
+      newHashes = result.newHashes;
     } catch (error) {
       console.error(error);
     }
@@ -140,6 +140,22 @@ ipcMain.on('watched-episode', (event, arg) => {
 
     return val;
   });
+  store.set('aniList', aniList);
+});
+
+ipcMain.on('move-to-watched', async (event, arg) => {
+  const watched = store.get('watched-animes') || [];
+  if (watched.every(val => val.mal_id !== arg.mal_id)) {
+    store.set('watched-animes', arg);
+  }
+
+  let followedAni = store.get('followedAni');
+  let aniList = store.get('aniList');
+
+  followedAni = followedAni.filter(val => val.mal_id !== arg.mal_id);
+  aniList = aniList.filter(val => val.mal_id !== arg.mal_id);
+
+  store.set('followedAni', followedAni);
   store.set('aniList', aniList);
 });
 

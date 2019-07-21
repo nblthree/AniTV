@@ -11,12 +11,18 @@ export default class CadreEpisode extends Component {
   render() {
     return (
       <div className="cadre">
-        <div className="state">
-          {this.state.finished_airing ? 'finished Airing' : `1/${this.props.anime.episodes}`}
-        </div>
-        <div role="button" className="reload" onClick={() => this.props.reload(this.props.anime)}>
+        <button
+          className="state"
+          onClick={() => this.props.setAsWatched(this.props.anime)}
+        >
+          Watched
+        </button>
+        <button
+          className="reload"
+          onClick={() => this.props.reload(this.props.anime)}
+        >
           Reload
-        </div>
+        </button>
         <div
           role="button"
           className="img"
@@ -33,12 +39,15 @@ export default class CadreEpisode extends Component {
             .state, .reload {
               position: absolute;
               top: 0;
-              width: 60px;
+              width: 80px;
               height: 20px;
               font-size: 12px;
               text-align: center;
               line-height: 20px;
               color: #fff;
+              border: 0;
+              outline: none;
+              cursor: pointer;
             }
             .state {
               top: 0;
@@ -48,7 +57,6 @@ export default class CadreEpisode extends Component {
             .reload {
               right: 0;
               background-color: red;
-              cursor: pointer;
             }
             .img {
               width: 100%;
