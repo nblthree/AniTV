@@ -2,13 +2,7 @@ import { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/layout';
 import CadreEpisodes from '../components/cadre-episodes';
-
-function bytesConverter(bytes) {
-  let convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
-  if (convertedValue < 1000) return `${convertedValue}MB`;
-  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
-  return `${convertedValue}GB`;
-}
+import Video from '../components/video';
 
 export default class Followed extends Component {
   constructor(props) {
@@ -108,72 +102,18 @@ export default class Followed extends Component {
                 }}
               />
               <div className="grid">
-                {this.state.followedAnime.episodes.map(val => {
+                {this.state.followedAnime.episodes.map(ep => {
                   return (
-                    <div className="episode" key={val.magnet + val.number}>
-                      <div className="progress">
-                        <div
-                          className="progress-bar"
-                          style={{
-                            width: this.state.torrent[val.magnet]
-                              ? `${this.state.torrent[val.magnet].progress *
-                                  100}%`
-                              : 0,
-                            backgroundColor:
-                              this.state.torrent[val.magnet] &&
-                              this.state.torrent[val.magnet].progress === 1
-                                ? '#95ff95'
-                                : '#5555ff'
-                          }}
-                        />
-                        {this.state.torrent[val.magnet] &&
-                        this.state.torrent[val.magnet].progress < 1 ? (
-                          <div className="download_speed">
-                            <span>
-                              {bytesConverter(
-                                this.state.torrent[val.magnet].downloaded
-                              )}
-                            </span>
-                            <span>
-                              {bytesConverter(
-                                this.state.torrent[val.magnet].speed
-                              )}
-                            </span>
-                          </div>
-                        ) : null}
-                      </div>
-                      {(val.pathnames.length > 0 &&
-                        !this.state.unfound.includes(val.pathnames[0])) ||
-                      (this.state.torrent[val.magnet] &&
-                        this.state.torrent[val.magnet].progress < 1) ? (
-                        <video
-                          onError={() => this.handleError(val.pathnames[0])}
-                          src={val.pathnames[0]}
-                          onClick={e => {
-                            this.playEpisode({
-                              mal_id: this.state.followedAnime.mal_id,
-                              episode: val,
-                              target: e.target
-                            });
-                          }}
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            this.download({
-                              anime: this.state.followedAnime,
-                              episode: val
-                            })
-                          }
-                        >
-                          Download
-                        </button>
-                      )}
-                      <div className="title">
-                        {val.title.replace(/\[.*?\]/g, '')}
-                      </div>
-                    </div>
+                    <Video
+                      key={ep.magnet + ep.number}
+                      anime={this.state.followedAnime}
+                      torrent={this.state.torrent}
+                      ep={ep}
+                      unfound={this.state.unfound}
+                      handleError={this.handleError}
+                      playEpisode={this.playEpisode}
+                      download={this.download}
+                    />
                   );
                 })}
               </div>
@@ -208,61 +148,6 @@ export default class Followed extends Component {
               height: 100%;
               padding: 0 50px;
               box-sizing: border-box;
-            }
-            .episode {
-              width: 320px;
-              height: 180px;
-              position: relative;
-              margin: 0 7px 15px 7px;
-              display: flex;
-              background-color: #000;
-            }
-            video {
-              width: 100%;
-              height: 100%;
-            }
-            .episode button {
-              width: 120px;
-              height: 25px;
-              border-radius: 12px;
-              margin: auto;
-              outline: none;
-              border: 0;
-              color: #fff;
-              background-color: #ffffff1f;
-              cursor: pointer;
-            }
-            .title {
-              position: absolute;
-              bottom: 0;
-              text-align: center;
-              width: 100%;
-              background-color: #111111e6;
-              max-height: 42px;
-              overflow: hidden;
-              // color: #fff;
-            }
-            .progress {
-              position: absolute;
-              top: 0;
-              width: 100%;
-              background-color: #111111e6;
-              height: 15px;
-              overflow: hidden;
-              display: flex;
-            }
-            .progress-bar {
-              height: 100%;
-              width: 0;
-              background-color: #5555ff;
-            }
-            .download_speed {
-              position: absolute;
-              line-height: 14px;
-              color: #fff;
-              width: 100%;
-              display: flex;
-              justify-content: space-around;
             }
             .exit {
               width: 50px;
