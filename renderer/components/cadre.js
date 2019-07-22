@@ -4,9 +4,11 @@ export default class Cadre extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      followed: this.props.followedAni.some(
-        val => val.mal_id === this.props.anime.mal_id
-      )
+      followed:
+        this.props.followedAni &&
+        this.props.followedAni.some(
+          val => val.mal_id === this.props.anime.mal_id
+        )
     };
   }
 
@@ -24,18 +26,20 @@ export default class Cadre extends Component {
           >
             Info
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              this.props.follow({
-                anime: this.props.anime,
-                follow: !this.state.followed
-              });
-              this.setState(prev => ({ followed: !prev.followed }));
-            }}
-          >
-            {this.state.followed ? 'Unfollow' : 'Follow'}
-          </button>
+          {this.props.follow ? (
+            <button
+              type="button"
+              onClick={() => {
+                this.props.follow({
+                  anime: this.props.anime,
+                  follow: !this.state.followed
+                });
+                this.setState(prev => ({ followed: !prev.followed }));
+              }}
+            >
+              {this.state.followed ? 'Unfollow' : 'Follow'}
+            </button>
+          ) : null}
         </div>
         <div className="title">{this.props.anime.title}</div>
         <style jsx>{`
