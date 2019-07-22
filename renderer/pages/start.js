@@ -1,13 +1,7 @@
 import { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/layout';
-
-function bytesConverter(bytes) {
-  let convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
-  if (convertedValue < 1000) return `${convertedValue}MB`;
-  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
-  return `${convertedValue}GB`;
-}
+import Video from '../components/video';
 
 export default class Start extends Component {
   constructor(props) {
@@ -81,70 +75,16 @@ export default class Start extends Component {
                       }
 
                       return (
-                        <div className="episode" key={ep.magnet + ep.number}>
-                          <div className="progress">
-                            <div
-                              className="progress-bar"
-                              style={{
-                                width: this.state.torrent[ep.magnet]
-                                  ? `${this.state.torrent[ep.magnet].progress *
-                                      100}%`
-                                  : 0,
-                                backgroundColor:
-                                  this.state.torrent[ep.magnet] &&
-                                  this.state.torrent[ep.magnet].progress === 1
-                                    ? '#95ff95'
-                                    : '#5555ff'
-                              }}
-                            />
-                            {this.state.torrent[ep.magnet] &&
-                            this.state.torrent[ep.magnet].progress < 1 ? (
-                              <div className="download_speed">
-                                <span>
-                                  {bytesConverter(
-                                    this.state.torrent[ep.magnet].downloaded
-                                  )}
-                                </span>
-                                <span>
-                                  {bytesConverter(
-                                    this.state.torrent[ep.magnet].speed
-                                  )}
-                                </span>
-                              </div>
-                            ) : null}
-                          </div>
-                          {(ep.pathnames.length > 0 &&
-                            !this.state.unfound.includes(ep.pathnames[0])) ||
-                          (this.state.torrent[ep.magnet] &&
-                            this.state.torrent[ep.magnet].progress < 1) ? (
-                            <video
-                              onError={() => this.handleError(ep.pathnames[0])}
-                              src={ep.pathnames[0]}
-                              onClick={e => {
-                                this.playEpisode({
-                                  mal_id: val.mal_id,
-                                  episode: ep,
-                                  target: e.target
-                                });
-                              }}
-                            />
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                this.download({
-                                  anime: val,
-                                  episode: ep
-                                })
-                              }
-                            >
-                              Download
-                            </button>
-                          )}
-                          <div className="title">
-                            {ep.title.replace(/\[.*?\]/g, '')}
-                          </div>
-                        </div>
+                        <Video
+                          key={ep.magnet + ep.number}
+                          anime={val}
+                          torrent={this.state.torrent}
+                          ep={ep}
+                          unfound={this.state.unfound}
+                          handleError={this.handleError}
+                          playEpisode={this.playEpisode}
+                          download={this.download}
+                        />
                       );
                     })}
                   </div>
