@@ -49,6 +49,10 @@ ipcMain.on('start-download', (event, { anime, episode }) => {
 ipcMain.on('get-followedAni', event => {
   event.returnValue = store.get('followedAni') || [];
 });
+// Get the watched animes
+ipcMain.on('get-watchedAni', event => {
+  event.returnValue = store.get('watchedAni') || [];
+});
 // Set the followed animes and update aniList
 ipcMain.on('set-followedAni', async (event, arg) => {
   const followedAni = store.get('followedAni') || [];
@@ -144,10 +148,12 @@ ipcMain.on('watched-episode', (event, arg) => {
 });
 
 ipcMain.on('move-to-watched', async (event, arg) => {
-  const watched = store.get('watched-animes') || [];
+  const watched = store.get('watchedAni') || [];
   if (watched.every(val => val.mal_id !== arg.mal_id)) {
-    store.set('watched-animes', arg);
+    watched.push(arg);
   }
+
+  store.set('watchedAni', watched);
 
   let followedAni = store.get('followedAni');
   let aniList = store.get('aniList');
