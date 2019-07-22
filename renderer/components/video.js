@@ -42,7 +42,7 @@ export default class video extends Component {
         {(this.props.ep.pathnames.length > 0 &&
           !this.props.unfound.includes(this.props.ep.pathnames[0])) ||
         (this.props.torrent[this.props.ep.magnet] &&
-          this.props.torrent[this.props.ep.magnet].progress < 1) ? (
+          this.props.torrent[this.props.ep.magnet].progress <= 1) ? (
           <video
             onError={() => this.props.handleError(this.props.ep.pathnames[0])}
             src={this.props.ep.pathnames[0]}
