@@ -83,7 +83,7 @@
     "electron-builder": "^20.40.2",
     "eslint": "^6.1.0",
     "eslint-config-prettier": "^6.0.0",
-    "eslint-plugin-react": "^7.14.2",
+    "eslint-plugin-react": "^7.14.3",
     "husky": "^3.0.1",
     "lint-staged": "^9.2.0",
     "next": "^9.0.2",
