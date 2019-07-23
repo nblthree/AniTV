@@ -98,7 +98,7 @@
     "electron-store": "^4.0.0",
     "fs-extra": "^8.0.1",
     "fuzzball": "^1.2.2",
-    "puppeteer": "^1.16.0",
+    "puppeteer": "^1.19.0",
     "webtorrent": "^0.105.0"
   }
 }
