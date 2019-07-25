@@ -99,18 +99,18 @@ setInterval(async () => {
     if (!val) return;
     let newHashes = [];
     try {
-      const result = await getAnimeEpisodes(val, val.episodes.length + 1);
+      const result = await getAnimeEpisodes(val);
       newHashes = result.newHashes;
     } catch (error) {
       console.error(error);
     }
 
-    if (
-      newHashes &&
-      newHashes.length > 0 &&
-      val.episodes.every(e => e.magnet !== newHashes[0].magnet)
-    ) {
-      val.episodes.push(newHashes[0]);
+    newHashes = newHashes.filter(
+      val_z => !val.episodes.some(val_y => val_y.magnet === val_z.magnet)
+    );
+
+    if (newHashes && newHashes.length > 0) {
+      val.episodes.push(...newHashes);
       if (Notification.isSupported()) {
         const notification = new Notification({
           title: 'New episode',
