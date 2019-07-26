@@ -3,7 +3,13 @@ const { join } = require('path');
 const { format } = require('url');
 
 // Packages
-const { BrowserWindow, app, ipcMain, Notification } = require('electron');
+const {
+  BrowserWindow,
+  app,
+  ipcMain,
+  Notification,
+  dialog
+} = require('electron');
 const isDev = require('electron-is-dev');
 const prepareNext = require('electron-next');
 
@@ -27,7 +33,40 @@ const {
 } = require('./functions');
 
 // Events Listening..........
-// get-set the animes of the current season
+// get-set options
+const defaultOptions = {
+  saveTo: app.getPath('downloads'),
+  resolution: '720',
+  timeInterval: '15',
+  runOnBoot: 'false'
+};
+ipcMain.on('get-options', event => {
+  const options = { ...defaultOptions, ...(store.get('options') || {}) };
+  event.returnValue = options;
+});
+ipcMain.on('set-path', event => {
+  const options = { ...defaultOptions, ...(store.get('options') || {}) };
+  const arr = dialog.showOpenDialog({ properties: ['openDirectory'] });
+  options.saveTo = arr ? arr[0] : options.saveTo;
+  store.set('options', options);
+  event.sender.send('reload-path', options.saveTo);
+});
+ipcMain.on('set-resolution', (event, arg) => {
+  const options = { ...defaultOptions, ...(store.get('options') || {}) };
+  options.resolution = arg;
+  store.set('options', options);
+});
+ipcMain.on('set-timeInterval', (event, arg) => {
+  const options = { ...defaultOptions, ...(store.get('options') || {}) };
+  options.timeInterval = arg;
+  store.set('options', options);
+});
+ipcMain.on('set-runOnBoot', (event, arg) => {
+  const options = { ...defaultOptions, ...(store.get('options') || {}) };
+  options.runOnBoot = arg;
+  store.set('options', options);
+});
+// Get-set the animes of the current season
 ipcMain.on('get-season', event => {
   event.returnValue = store.get('season') || [];
 });
@@ -42,7 +81,7 @@ ipcMain.on('get-aniList', event => {
 ipcMain.on('start-download', (event, { anime, episode }) => {
   startDownloading(episode.magnet, event, anime, {
     store,
-    downloadPath: app.getPath('downloads')
+    downloadPath: { ...defaultOptions, ...(store.get('options') || {}) }.saveTo
   });
 });
 // Get the followed animes
