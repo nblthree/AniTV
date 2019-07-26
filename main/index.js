@@ -81,7 +81,7 @@ ipcMain.on('get-aniList', event => {
 ipcMain.on('start-download', (event, { anime, episode }) => {
   startDownloading(episode.magnet, event, anime, {
     store,
-    downloadPath: app.getPath('downloads')
+    downloadPath: { ...defaultOptions, ...(store.get('options') || {}) }.saveTo
   });
 });
 // Get the followed animes
