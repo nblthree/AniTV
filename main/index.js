@@ -35,7 +35,7 @@ const {
 // Events Listening..........
 // get-set options
 const defaultOptions = {
-  saveTo: app.getPath('downloads'),
+  downloadPath: app.getPath('downloads'),
   resolution: '720',
   timeInterval: '15',
   runOnBoot: 'false'
@@ -47,9 +47,9 @@ ipcMain.on('get-options', event => {
 ipcMain.on('set-path', event => {
   const options = { ...defaultOptions, ...(store.get('options') || {}) };
   const arr = dialog.showOpenDialog({ properties: ['openDirectory'] });
-  options.saveTo = arr ? arr[0] : options.saveTo;
+  options.downloadPath = arr ? arr[0] : options.downloadPath;
   store.set('options', options);
-  event.sender.send('reload-path', options.saveTo);
+  event.sender.send('reload-path', options.downloadPath);
 });
 ipcMain.on('set-resolution', (event, arg) => {
   const options = { ...defaultOptions, ...(store.get('options') || {}) };
@@ -79,9 +79,13 @@ ipcMain.on('get-aniList', event => {
 });
 // Trigger download (triggered by a click on a button)
 ipcMain.on('start-download', (event, { anime, episode }) => {
+  const { downloadPath } = {
+    ...defaultOptions,
+    ...(store.get('options') || {})
+  };
   startDownloading(episode.magnet, event, anime, {
     store,
-    downloadPath: { ...defaultOptions, ...(store.get('options') || {}) }.saveTo
+    downloadPath
   });
 });
 // Get the followed animes
@@ -100,11 +104,12 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 
   // Episodes
   const aniList = store.get('aniList') || [];
+  const { resolution } = { ...defaultOptions, ...(store.get('options') || {}) };
 
   let newTitle;
   let newHashes;
   try {
-    const result = await getAnimeEpisodes(arg);
+    const result = await getAnimeEpisodes(arg, resolution);
     newTitle = result.newTitle;
     newHashes = result.newHashes;
   } catch (error) {
@@ -128,7 +133,9 @@ ipcMain.on('set-followedAni', async (event, arg) => {
 
   event.sender.send('onload', false);
 });
-// Check for new episodes each 15 minutes
+
+const { timeInterval } = { ...defaultOptions, ...(store.get('options') || {}) };
+// Check for new episodes each timeInterval minutes
 setInterval(async () => {
   const followedAni = store.get('followedAni') || [];
   let aniList = store.get('aniList') || [];
@@ -137,8 +144,12 @@ setInterval(async () => {
     const val = aniList.filter(ele => ele.mal_id === followedAni[i].mal_id)[0];
     if (!val) return;
     let newHashes = [];
+    const { resolution } = {
+      ...defaultOptions,
+      ...(store.get('options') || {})
+    };
     try {
-      const result = await getAnimeEpisodes(val);
+      const result = await getAnimeEpisodes(val, resolution);
       newHashes = result.newHashes;
     } catch (error) {
       console.error(error);
@@ -169,7 +180,7 @@ setInterval(async () => {
   }
 
   store.set('aniList', aniList);
-}, 1000 * 60 * 15); // 15min
+}, 1000 * 60 * timeInterval);
 
 ipcMain.on('watched-episode', (event, arg) => {
   let aniList = store.get('aniList') || [];
@@ -209,8 +220,9 @@ ipcMain.on('reload-episodes', async (event, arg) => {
   let aniList = store.get('aniList') || [];
   aniList = aniList.filter(val => val.mal_id !== arg.mal_id);
   let results;
+  const { resolution } = { ...defaultOptions, ...(store.get('options') || {}) };
   try {
-    results = await getHorribleSubs(arg.title);
+    results = await getHorribleSubs(arg.title, resolution);
   } catch (error) {
     console.error(error);
   }

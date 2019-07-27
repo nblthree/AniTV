@@ -26,7 +26,9 @@ export default class Options extends Component {
   }
 
   reloadPath(event, val) {
-    this.setState(prev => ({ options: { ...prev.options, saveTo: val } }));
+    this.setState(prev => ({
+      options: { ...prev.options, downloadPath: val }
+    }));
   }
 
   handlePath() {
@@ -62,7 +64,7 @@ export default class Options extends Component {
             <div className="option">
               <h3>Save files to</h3>
               <div className="flex">
-                <span className="input">{this.state.options.saveTo}</span>
+                <span className="input">{this.state.options.downloadPath}</span>
                 <button
                   onClick={() => {
                     this.handlePath();
@@ -88,13 +90,15 @@ export default class Options extends Component {
             </div>
 
             <div className="option">
-              <h3>Time interval between new episodes check</h3>
+              <h3>
+                Time interval between new episodes check. (Need to relaunch the
+                app)
+              </h3>
               <div className="flex">
                 <select
                   onChange={this.handleTimeInterval}
                   value={this.state.options.timeInterval}
                 >
-                  <option value="5">5 minutes</option>
                   <option value="10">10 minutes</option>
                   <option value="15">15 minutes</option>
                   <option value="20">20 minutes</option>

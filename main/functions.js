@@ -17,12 +17,11 @@ function fixedEncodeURI(str) {
 }
 
 // Add some info to the title and return the encoded title value
-function processTitle(title, episode) {
-  const quality = 720;
+function processTitle(title, episode, resolution) {
   if (episode !== -1) {
-    title += ` ${episode} ${quality}`;
+    title += ` ${episode} ${resolution}`;
   } else {
-    title += ` ${quality}`;
+    title += ` ${resolution}`;
   }
 
   title = fixedEncodeURI(title);
@@ -30,7 +29,7 @@ function processTitle(title, episode) {
 }
 
 // Scrap data from nyaa. data contain magnet URI and episode title
-async function getHashes(title, episode, p = 1) {
+async function getHashes(title, episode, { page = 1, resolution }) {
   const hashes = await new Promise(resolve => {
     void (async () => {
       try {
@@ -39,8 +38,9 @@ async function getHashes(title, episode, p = 1) {
         await page.goto(
           `https://nyaa.si/?f=0&c=1_2&q=${processTitle(
             title,
-            episode
-          )}&p=${p}&s=seeders&o=desc`
+            episode,
+            resolution
+          )}&p=${page}&s=seeders&o=desc`
         );
 
         const result = await page.evaluate(() => {
@@ -68,7 +68,7 @@ async function getHashes(title, episode, p = 1) {
         resolve(result);
       } catch (error) {
         console.error(error);
-        resolve(getHashes(title, episode));
+        resolve(getHashes(title, episode, { page, resolution }));
       }
     })();
   });
@@ -162,7 +162,7 @@ function startDownloading(magnet, event, anime, { store, downloadPath }) {
 // Perform different change on the input anime title to make sure that we doesn't get an empty array in most cases
 // Also return an array of the anime epidodes
 // Call chooseHash function and getHashes function
-function getAnimeEpisodes(anime, ep = 0) {
+function getAnimeEpisodes(anime, resolution) {
   return new Promise(async resolve => {
     const titleOperations = [
       { name: 'normal' },
@@ -171,7 +171,7 @@ function getAnimeEpisodes(anime, ep = 0) {
     ];
 
     const newHashes = [];
-    let loopLength = 500;
+    const loopLength = 500;
     let newTitle = anime.title;
     for (const operation of titleOperations) {
       if (operation.name === 'pure') {
@@ -195,23 +195,20 @@ function getAnimeEpisodes(anime, ep = 0) {
       }
 
       newTitle = newTitle.trim();
-      if (ep !== 0) {
-        loopLength = ep + 1;
-      }
 
-      for (let i = ep; i < loopLength; i++) {
+      for (let i = 1; i < loopLength; i++) {
         let item;
         try {
-          item = chooseHash(await getHashes(newTitle, ep ? i : i + 1), {
+          item = chooseHash(await getHashes(newTitle, i, { resolution }), {
             title: newTitle,
-            episode: ep ? i : i + 1
+            episode: i
           });
         } catch (error) {
           console.error(error);
         }
 
         if (item && !isDuplicate(newHashes, item)) {
-          newHashes.push({ ...item, number: ep ? i : i + 1, pathnames: [] });
+          newHashes.push({ ...item, number: i, pathnames: [] });
         } else {
           break;
         }
@@ -225,17 +222,17 @@ function getAnimeEpisodes(anime, ep = 0) {
 }
 
 // Return all episodes translated by HorribleSubs from all seasons (Match the anime title without any additions)
-function getHorribleSubs(title) {
+function getHorribleSubs(title, resolution) {
   return new Promise(async resolve => {
     const newTitle = `[HorribleSubs] ${title
       .replace(/season|nd|part|rd|th|s?\d+/gi, '')
       .replace(/  +/g, ' ')
       .trim()}`;
     let allMagnets = [];
-    for (let i = 1; i < 50; i++) {
+    for (let page = 1; page < 50; page++) {
       let result;
       try {
-        result = await getHashes(newTitle, -1, i);
+        result = await getHashes(newTitle, -1, { page, resolution });
       } catch (error) {
         console.error(error);
       }
