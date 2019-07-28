@@ -275,6 +275,7 @@ app.on('ready', async () => {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 700,
+    icon: join(__dirname, 'static/icons/icon.png'),
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,

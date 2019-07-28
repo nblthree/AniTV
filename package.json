@@ -19,7 +19,16 @@
       "**/*",
       "!renderer",
       "renderer/out"
-    ]
+    ],
+    "win": {
+      "icon": "main/static/icons/icon.png"
+    },
+    "mac": {
+      "icon": "main/static/icons/icon.png",
+      "extendInfo": {
+        "LSUIElement": 1
+      }
+    }
   },
   "author": "MarchWorks<edel.f.wool@gmail.com>",
   "license": "MIT",
