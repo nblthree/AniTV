@@ -1,6 +1,5 @@
 // Native
 const { join } = require('path');
-const { format } = require('url');
 
 // Packages
 const {
@@ -16,8 +15,7 @@ const prepareNext = require('electron-next');
 const fs = require('fs-extra');
 const Store = require('electron-store');
 
-const isProd = process.env.NODE_ENV === 'production';
-if (!isProd) {
+if (isDev) {
   const userDataPath = app.getPath('userData');
   app.setPath('userData', `${userDataPath} (development)`);
 }
@@ -291,11 +289,8 @@ app.on('ready', async () => {
 
   const url = isDev
     ? 'http://localhost:8000/start'
-    : format({
-        pathname: join(__dirname, '../renderer/start/index.html'),
-        protocol: 'file:',
-        slashes: true
-      });
+    : `${app.getAppPath()}/renderer/out/start.html`;
+
   mainWindow.setMenu(null);
   mainWindow.loadURL(url);
 });
