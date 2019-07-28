@@ -164,7 +164,8 @@ setInterval(async () => {
       if (Notification.isSupported()) {
         const notification = new Notification({
           title: 'New episode',
-          body: val.title
+          body: val.title,
+          icon: join(__dirname, 'static/icons/icon.png')
         });
         notification.show();
       }
@@ -283,7 +284,10 @@ app.on('ready', async () => {
       preload: join(__dirname, 'preload.js')
     }
   });
-  mainWindow.webContents.openDevTools();
+
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
 
   const url = isDev
     ? 'http://localhost:8000/start'
