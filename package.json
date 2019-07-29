@@ -8,13 +8,14 @@
   "scripts": {
     "dev": "electron .",
     "build": "yarn build-renderer && yarn build-app",
-    "build-app": "build",
+    "build-app": "electron-builder",
     "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "test": "yarn test-lint",
     "test-lint": "xo",
     "lintfix": "xo --fix"
   },
   "build": {
+  	"appId": "com.marchworks.anitv",
     "files": [
       "**/*",
       "!renderer",
@@ -89,7 +90,7 @@
     "babel-eslint": "^10.0.2",
     "cross-env": "^5.2.0",
     "electron": "^5.0.8",
-    "electron-builder": "^20.40.2",
+    "electron-builder": "^21.1.5",
     "eslint": "^6.1.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-react": "^7.14.3",
