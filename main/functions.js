@@ -29,18 +29,22 @@ function processTitle(title, episode, resolution) {
 }
 
 // Scrap data from nyaa. data contain magnet URI and episode title
-async function getHashes(title, episode, { page = 1, resolution }) {
+async function getHashes(title, episode, { pageNumber = 1, resolution }) {
   const hashes = await new Promise(resolve => {
     void (async () => {
       try {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+          executablePath: puppeteer
+            .executablePath()
+            .replace(/app\.asar(\.unpacked)?/, 'app.asar.unpacked')
+        });
         const page = await browser.newPage();
         await page.goto(
           `https://nyaa.si/?f=0&c=1_2&q=${processTitle(
             title,
             episode,
             resolution
-          )}&p=${page}&s=seeders&o=desc`
+          )}&p=${pageNumber}&s=seeders&o=desc`
         );
 
         const result = await page.evaluate(() => {
@@ -68,7 +72,7 @@ async function getHashes(title, episode, { page = 1, resolution }) {
         resolve(result);
       } catch (error) {
         console.error(error);
-        resolve(getHashes(title, episode, { page, resolution }));
+        resolve(getHashes(title, episode, { pageNumber, resolution }));
       }
     })();
   });
@@ -229,10 +233,10 @@ function getHorribleSubs(title, resolution) {
       .replace(/  +/g, ' ')
       .trim()}`;
     let allMagnets = [];
-    for (let page = 1; page < 50; page++) {
+    for (let pageNumber = 1; pageNumber < 50; pageNumber++) {
       let result;
       try {
-        result = await getHashes(newTitle, -1, { page, resolution });
+        result = await getHashes(newTitle, -1, { pageNumber, resolution });
       } catch (error) {
         console.error(error);
       }
