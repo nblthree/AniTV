@@ -50,9 +50,9 @@ export default class Options extends Component {
   }
 
   handleRunOnBoot({ target }) {
-    this.ipcRenderer.send('set-runOnBoot', target.value);
+    this.ipcRenderer.send('set-runOnBoot', target.value === 'true');
     this.setState(prev => ({
-      options: { ...prev.options, runOnBoot: target.value }
+      options: { ...prev.options, runOnBoot: target.value === 'true' }
     }));
   }
 
@@ -115,7 +115,11 @@ export default class Options extends Component {
               <div className="flex">
                 <select
                   onChange={this.handleRunOnBoot}
-                  value={this.state.options.runOnBoot}
+                  value={
+                    typeof this.state.options.runOnBoot === 'undefined'
+                      ? 'false'
+                      : this.state.options.runOnBoot.toString()
+                  }
                 >
                   <option value="true">Yes</option>
                   <option value="false">No</option>
