@@ -115,7 +115,11 @@ export default class Options extends Component {
               <div className="flex">
                 <select
                   onChange={this.handleRunOnBoot}
-                  value={this.state.options.runOnBoot.toString()}
+                  value={
+                    typeof this.state.options.runOnBoot === 'undefined'
+                      ? 'false'
+                      : this.state.options.runOnBoot.toString()
+                  }
                 >
                   <option value="true">Yes</option>
                   <option value="false">No</option>
