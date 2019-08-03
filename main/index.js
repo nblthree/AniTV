@@ -71,6 +71,12 @@ app.on('ready', async () => {
     });
   }
 
+  const gotInstanceLock = app.requestSingleInstanceLock();
+
+  if (!gotInstanceLock) {
+    return app.exit();
+  }
+
   app.on('before-quit', () => {
     mainWindow.destroy();
   });
