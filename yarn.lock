@@ -7539,10 +7539,17 @@ simple-peer@^9.0.0:
     randombytes "^2.0.3"
     readable-stream "^2.3.4"
 
-simple-sha1@^2.0.0, simple-sha1@^2.0.8, simple-sha1@^2.1.0:
+simple-sha1@^2.0.0, simple-sha1@^2.1.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/simple-sha1/-/simple-sha1-2.1.2.tgz#de40cbd5aae278fde8e3bb3250a35d74c67326b1"
   integrity sha512-TQl9rm4rdKAVmhO++sXAb8TNN0D6JAD5iyI1mqEPNpxUzTRrtm4aOG1pDf/5W/qCFihiaoK6uuL9rvQz1x1VKw==
+  dependencies:
+    rusha "^0.8.1"
+
+simple-sha1@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/simple-sha1/-/simple-sha1-3.0.0.tgz#307e1e30ec59656479517706fbb0a89c25bd8bd8"
+  integrity sha512-SqL4vDrk/gflGAwZkH0o0jIlmrWTYSKHJKAc2DT8zgsrvcc39PLNyr1IK8U6AX/C8w838khOxsnlpxcRXNRYgQ==
   dependencies:
     rusha "^0.8.1"
 
@@ -8718,10 +8725,10 @@ webpack@4.38.0:
     watchpack "^1.5.0"
     webpack-sources "^1.3.0"
 
-webtorrent@^0.107.6:
-  version "0.107.6"
-  resolved "https://registry.yarnpkg.com/webtorrent/-/webtorrent-0.107.6.tgz#5c05c6ccc7c1d8c3ef3983521a6f2abcdee048a1"
-  integrity sha512-EMiqSPSNgzfUbxHXCwzrcwWWvdV4t3BWRHFDpoxamxB2ZSqy9ogF42NeptjXKTfmCrMdQxAAnXakYZQyZB5BrA==
+webtorrent@^0.107.9:
+  version "0.107.9"
+  resolved "https://registry.yarnpkg.com/webtorrent/-/webtorrent-0.107.9.tgz#e974072bb4f560f64279a782a03da3a5c05df42b"
+  integrity sha512-i0nDW8sFKseO3ajEJpj+tbDiGx++hDPoTDOvC+qSMTtzKXmcbT5jOKB/gqS7yOlPLUl7fe1NJhntNy0ppXoU0Q==
   dependencies:
     addr-to-ip-port "^1.4.2"
     bitfield "^3.0.0"
@@ -8754,7 +8761,7 @@ webtorrent@^0.107.6:
     simple-concat "^1.0.0"
     simple-get "^3.0.1"
     simple-peer "^9.0.0"
-    simple-sha1 "^2.0.8"
+    simple-sha1 "^3.0.0"
     speedometer "^1.0.0"
     stream-to-blob "^2.0.0"
     stream-to-blob-url "^3.0.0"
