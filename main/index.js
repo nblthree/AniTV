@@ -55,22 +55,6 @@ app.on('ready', async () => {
 
   const tray = new Tray(join(__dirname, 'static/icons/icon.png'));
 
-  const states = {
-    hide: false,
-    show: true,
-    minimize: false,
-    restore: true,
-    focus: true
-  };
-
-  for (const state of Object.keys(states)) {
-    const highlighted = states[state];
-    mainWindow.on(state, () => {
-      // Highlight the tray or don't
-      tray.setHighlightMode(highlighted ? 'always' : 'selection');
-    });
-  }
-
   const gotInstanceLock = app.requestSingleInstanceLock();
 
   if (!gotInstanceLock) {
@@ -102,18 +86,16 @@ app.on('ready', async () => {
     }
   };
 
-  tray.on('click', toggleActivity);
   tray.on('double-click', toggleActivity);
 
   let submenuShown = false;
-
+  prepareIpc(app);
+  const menu = await getContextMenu();
   tray.on('right-click', async event => {
     if (mainWindow.isVisible()) {
       mainWindow.hide();
       return;
     }
-
-    const menu = await getContextMenu();
 
     // Toggle submenu
     tray.popUpContextMenu(submenuShown ? null : menu);
@@ -121,8 +103,6 @@ app.on('ready', async () => {
 
     event.preventDefault();
   });
-
-  prepareIpc(app);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
