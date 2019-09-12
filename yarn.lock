@@ -2068,7 +2068,7 @@ chownr@^1.1.1:
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-1.1.2.tgz#a18f1e0b269c8a6a5d3c86eb298beb14c3dd7bf6"
   integrity sha512-GkfeAQh+QNy3wquu9oIZr6SS5x7wGdSgNQvD10X3r+AZr1Oys22HW8kAmDMvNg2+Dm0TeGaEuO8gFwdBXxwO8A==
 
-chrome-net@^3.3.2:
+chrome-net@^3.3.2, chrome-net@^3.3.3:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/chrome-net/-/chrome-net-3.3.3.tgz#09b40337d97fa857ac44ee9a2d82a66e43863401"
   integrity sha512-11jL8+Ogna8M5TEdyalE8IG6cpaFEU3YcaxAj3YjZKjRM/PeT70pZbrUY+xoGwqiEJZwJE4Td2CvGxUvS9ytKQ==
@@ -4268,12 +4268,12 @@ http-errors@~1.6.2:
     setprototypeof "1.1.0"
     statuses ">= 1.4.0 < 2"
 
-"http-node@github:feross/http-node#cddd2872f0020ecf5016f326cf5e58c965eef52a":
+"http-node@github:feross/http-node#webtorrent":
   version "1.2.0"
-  uid cddd2872f0020ecf5016f326cf5e58c965eef52a
-  resolved "https://codeload.github.com/feross/http-node/tar.gz/cddd2872f0020ecf5016f326cf5e58c965eef52a"
+  uid "342ef8624495343ffd050bd0808b3750cf0e3974"
+  resolved "https://codeload.github.com/feross/http-node/tar.gz/342ef8624495343ffd050bd0808b3750cf0e3974"
   dependencies:
-    chrome-net "^3.3.2"
+    chrome-net "^3.3.3"
     freelist "^1.0.3"
     http-parser-js "^0.4.3"
 
@@ -6811,6 +6811,11 @@ querystring@0.2.0, querystring@^0.2.0:
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
   integrity sha1-sgmEkgO7Jd+CDadW50cAWHhSFiA=
 
+queue-microtask@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.1.2.tgz#139bf8186db0c545017ec66c2664ac646d5c571e"
+  integrity sha512-F9wwNePtXrzZenAB3ax0Y8TSKGvuB7Qw16J30hspEUTbfUM+H827XyN3rlpwhVmtm5wuZtbKIHjOnwDn7MUxWQ==
+
 quick-lru@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-1.1.0.tgz#4360b17c61136ad38078397ff11416e186dcfbb8"
@@ -7539,11 +7544,19 @@ simple-peer@^9.0.0:
     randombytes "^2.0.3"
     readable-stream "^2.3.4"
 
-simple-sha1@^2.0.0, simple-sha1@^2.0.8, simple-sha1@^2.1.0:
+simple-sha1@^2.0.0, simple-sha1@^2.1.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/simple-sha1/-/simple-sha1-2.1.2.tgz#de40cbd5aae278fde8e3bb3250a35d74c67326b1"
   integrity sha512-TQl9rm4rdKAVmhO++sXAb8TNN0D6JAD5iyI1mqEPNpxUzTRrtm4aOG1pDf/5W/qCFihiaoK6uuL9rvQz1x1VKw==
   dependencies:
+    rusha "^0.8.1"
+
+simple-sha1@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/simple-sha1/-/simple-sha1-3.0.1.tgz#b34c3c978d74ac4baf99b6555c1e6736e0d6e700"
+  integrity sha512-q7ehqWfHc1VhOm7sW099YDZ4I0yYX7rqyhqqhHV1IYeUTjPOhHyD3mXvv8k2P+rO7+7c8R4/D+8ffzC9BE7Cqg==
+  dependencies:
+    queue-microtask "^1.1.2"
     rusha "^0.8.1"
 
 simple-websocket@^7.0.1:
@@ -8718,10 +8731,10 @@ webpack@4.38.0:
     watchpack "^1.5.0"
     webpack-sources "^1.3.0"
 
-webtorrent@^0.107.6:
-  version "0.107.6"
-  resolved "https://registry.yarnpkg.com/webtorrent/-/webtorrent-0.107.6.tgz#5c05c6ccc7c1d8c3ef3983521a6f2abcdee048a1"
-  integrity sha512-EMiqSPSNgzfUbxHXCwzrcwWWvdV4t3BWRHFDpoxamxB2ZSqy9ogF42NeptjXKTfmCrMdQxAAnXakYZQyZB5BrA==
+webtorrent@^0.107.16:
+  version "0.107.16"
+  resolved "https://registry.yarnpkg.com/webtorrent/-/webtorrent-0.107.16.tgz#cf2231f87b3f4334f8eb56ba5aae80df8cd8521c"
+  integrity sha512-5fdPZFiZPxwbigAHtMVQ7ZCXbZSQlxgB6JPD77itpc9DdKYPpliFwCLsNiQpj1jmpo91HlHUJk+Xp3ks1fLUQg==
   dependencies:
     addr-to-ip-port "^1.4.2"
     bitfield "^3.0.0"
@@ -8734,7 +8747,7 @@ webtorrent@^0.107.6:
     end-of-stream "^1.1.0"
     escape-html "^1.0.3"
     fs-chunk-store "^2.0.0"
-    http-node "github:feross/http-node#cddd2872f0020ecf5016f326cf5e58c965eef52a"
+    http-node "github:feross/http-node#webtorrent"
     immediate-chunk-store "^2.0.0"
     load-ip-set "^2.1.0"
     memory-chunk-store "^1.2.0"
@@ -8754,7 +8767,7 @@ webtorrent@^0.107.6:
     simple-concat "^1.0.0"
     simple-get "^3.0.1"
     simple-peer "^9.0.0"
-    simple-sha1 "^2.0.8"
+    simple-sha1 "^3.0.1"
     speedometer "^1.0.0"
     stream-to-blob "^2.0.0"
     stream-to-blob-url "^3.0.0"
