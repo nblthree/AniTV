@@ -2,7 +2,7 @@
   "name": "AniTV",
   "productName": "AniTV",
   "description": "Download and watch your preferred seasonal anime and get notified whenever a new episode is available",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": "MarchWorks/AniTV",
   "main": "main/index.js",
   "scripts": {
