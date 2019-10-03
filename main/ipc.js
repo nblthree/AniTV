@@ -38,23 +38,38 @@ module.exports = app => {
     const options = { ...defaultOptions, ...(store.get('options') || {}) };
     event.returnValue = options;
   });
-  ipcMain.on('set-path', event => {
+
+  ipcMain.on('set-path', async event => {
     const options = { ...defaultOptions, ...(store.get('options') || {}) };
-    const arr = dialog.showOpenDialog({ properties: ['openDirectory'] });
-    options.downloadPath = arr ? arr[0] : options.downloadPath;
+    let dirDialog = null;
+    try {
+      dirDialog = await dialog.showOpenDialog({
+        properties: ['openDirectory']
+      });
+    } catch (error) {
+      console.error(error);
+    }
+
+    options.downloadPath =
+      dirDialog && !dirDialog.canceled
+        ? dirDialog.filePaths[0]
+        : options.downloadPath;
     store.set('options', options);
     event.sender.send('reload-path', options.downloadPath);
   });
+
   ipcMain.on('set-resolution', (event, arg) => {
     const options = { ...defaultOptions, ...(store.get('options') || {}) };
     options.resolution = arg;
     store.set('options', options);
   });
+
   ipcMain.on('set-timeInterval', (event, arg) => {
     const options = { ...defaultOptions, ...(store.get('options') || {}) };
     options.timeInterval = arg;
     store.set('options', options);
   });
+
   ipcMain.on('set-runOnBoot', (event, arg) => {
     const options = { ...defaultOptions, ...(store.get('options') || {}) };
     options.runOnBoot = arg;
@@ -64,17 +79,21 @@ module.exports = app => {
     });
     store.set('options', options);
   });
+
   // Get-set the animes of the current season
   ipcMain.on('get-season', event => {
     event.returnValue = store.get('season') || [];
   });
+
   ipcMain.on('set-season', (event, arg) => {
     store.set('season', arg);
   });
+
   // Get the followed animes with additional data like episodes torrent Magnet URI
   ipcMain.on('get-aniList', event => {
     event.returnValue = store.get('aniList') || [];
   });
+
   // Trigger download (triggered by a click on a button)
   ipcMain.on('start-download', (event, { anime, episode }) => {
     const { downloadPath } = {
@@ -86,14 +105,17 @@ module.exports = app => {
       downloadPath
     });
   });
+
   // Get the followed animes
   ipcMain.on('get-followedAni', event => {
     event.returnValue = store.get('followedAni') || [];
   });
+
   // Get the watched animes
   ipcMain.on('get-watchedAni', event => {
     event.returnValue = store.get('watchedAni') || [];
   });
+
   // Set the followed animes and update aniList
   ipcMain.on('set-followedAni', async (event, arg) => {
     const followedAni = store.get('followedAni') || [];
@@ -247,12 +269,14 @@ module.exports = app => {
     });
     store.set('aniList', aniList);
   });
+
   // Unfollow an anime.
   ipcMain.on('unset-followedAni', (event, arg) => {
     let followedAni = store.get('followedAni') || [];
     followedAni = followedAni.filter(val => val.mal_id !== arg.mal_id);
     store.set('followedAni', followedAni);
   });
+
   // Get the downloaded episodes
   ipcMain.on('get-downloadedEpi', async event => {
     const aniList = store.get('aniList') || [];
