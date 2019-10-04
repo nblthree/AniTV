@@ -47,11 +47,13 @@ export default class video extends Component {
             onError={() => this.props.handleError(this.props.ep.pathnames[0])}
             src={this.props.ep.pathnames[0]}
             onClick={e => {
-              this.props.playEpisode({
-                mal_id: this.props.anime.mal_id,
-                episode: this.props.ep,
-                target: e.target
-              });
+              if (this.props.ep.pathnames[0]) {
+                this.props.playEpisode({
+                  mal_id: this.props.anime.mal_id,
+                  episode: this.props.ep,
+                  target: e.target
+                });
+              }
             }}
           />
         ) : (
