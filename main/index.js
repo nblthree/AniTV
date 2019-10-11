@@ -5,7 +5,7 @@ const { join } = require('path');
 const { BrowserWindow, app, Tray, dialog } = require('electron');
 const isDev = require('electron-is-dev');
 const prepareNext = require('electron-next');
-const { autoUpdater } = require('electron-updater');
+// Const { autoUpdater } = require('electron-updater');
 
 const prepareIpc = require('./ipc');
 const getContextMenu = require('./context-menu');
@@ -40,9 +40,9 @@ process.on('unhandledRejection', error => {
 
 // Prepare the renderer once the app is ready
 app.on('ready', async () => {
-  if (!isDev) {
+  /* If (!isDev) {
     autoUpdater.checkForUpdatesAndNotify();
-  }
+  } */
 
   await prepareNext('./renderer');
 
