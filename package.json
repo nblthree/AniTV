@@ -1,9 +1,9 @@
 {
-  "name": "AniTV",
+  "name": "anitv",
   "productName": "AniTV",
   "description": "Download and watch your preferred seasonal anime and get notified whenever a new episode is available",
-  "version": "1.0.1",
-  "repository": "MarchWorks/AniTV",
+  "version": "1.0.2",
+  "repository": "MarchWorks/anitv",
   "main": "main/index.js",
   "scripts": {
     "dev": "electron .",
@@ -12,17 +12,21 @@
     "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "test": "yarn test-lint",
     "test-lint": "xo",
-    "lintfix": "xo --fix"
+    "lintfix": "xo --fix",
+    "publish": "build -p onTag"
   },
   "build": {
-  	"appId": "com.marchworks.anitv",
+    "appId": "com.marchworks.anitv",
     "files": [
       "**/*",
       "!renderer",
       "renderer/out"
     ],
     "win": {
-      "icon": "main/static/icons/icon.png"
+      "icon": "main/static/icons/icon.png",
+      "publish": [
+        "github"
+      ]
     },
     "mac": {
       "icon": "main/static/icons/icon.png",
@@ -59,10 +63,10 @@
       "node"
     ],
     "settings": {
-	  "react": {
-	    "version": "detect"
-	   }
-	},
+      "react": {
+        "version": "detect"
+      }
+    },
     "rules": {
       "camelcase": 0,
       "no-async-promise-executor": 0,
@@ -108,6 +112,7 @@
     "electron-is-dev": "^1.1.0",
     "electron-next": "^3.1.5",
     "electron-store": "^5.0.0",
+    "electron-updater": "^4.1.2",
     "fs-extra": "^8.0.1",
     "fuzzball": "^1.3.0",
     "puppeteer": "^1.20.0",
