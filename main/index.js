@@ -59,6 +59,9 @@ app.on('ready', async () => {
   });
 
   const tray = new Tray(join(__dirname, 'static/icons/icon.png'));
+  tray.setToolTip(
+    `${app.getName()} ${app.getVersion()}\n0 downloading, 0 seeding\n0.0 kB/s down, 0.0 kB/s up`
+  );
 
   const gotInstanceLock = app.requestSingleInstanceLock();
 
@@ -94,7 +97,7 @@ app.on('ready', async () => {
   tray.on('double-click', toggleActivity);
 
   let submenuShown = false;
-  prepareIpc(app, mainWindow);
+  prepareIpc(app, mainWindow, tray);
   const menu = await getContextMenu();
   tray.on('right-click', async event => {
     if (mainWindow.isVisible()) {

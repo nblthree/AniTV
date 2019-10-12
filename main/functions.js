@@ -28,6 +28,15 @@ function processTitle(title, episode, resolution) {
   return title;
 }
 
+function bytesConverter(bytes) {
+  let convertedValue = (bytes / 10 ** 3).toFixed(1); // KB
+  if (convertedValue < 1000) return `${convertedValue} KB/s`;
+  convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
+  if (convertedValue < 1000) return `${convertedValue} MB/s`;
+  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
+  return `${convertedValue} GB/s`;
+}
+
 // Scrap data from nyaa. data contain magnet URI and episode title
 async function getHashes(title, episode, { pageNumber = 1, resolution }) {
   const hashes = await new Promise(resolve => {
@@ -101,7 +110,11 @@ function chooseHash(hashes, { title, episode }) {
 }
 
 // Download anime episodes
-function startDownloading(magnet, mainWindow, anime, { store, downloadPath }) {
+function startDownloading(
+  magnet,
+  anime,
+  { store, downloadPath, mainWindow, app, tray }
+) {
   let folder = anime.title;
   // Replace illegal characters on windows
   if (isWin) {
@@ -126,6 +139,23 @@ function startDownloading(magnet, mainWindow, anime, { store, downloadPath }) {
       }
     });
     store.set('aniList', aniList);
+
+    tray.setToolTip(
+      `${app.getName()} ${app.getVersion()}\n${
+        client.torrents.length
+      } downloading, ${0} seeding\n${bytesConverter(
+        client.downloadSpeed
+      )} down, ${bytesConverter(client.uploadSpeed)} up`
+    );
+    tray.on('mouse-move', () => {
+      tray.setToolTip(
+        `${app.getName()} ${app.getVersion()}\n${
+          client.torrents.length
+        } downloading, ${0} seeding\n${bytesConverter(
+          client.downloadSpeed
+        )} down, ${bytesConverter(client.uploadSpeed)} up`
+      );
+    });
 
     mainWindow.webContents.send('torrent-progress', {
       key: magnet,

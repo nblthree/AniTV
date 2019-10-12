@@ -13,7 +13,7 @@ const {
   startDownloading
 } = require('./functions');
 
-module.exports = (app, mainWindow) => {
+module.exports = (app, mainWindow, tray) => {
   if (isDev) {
     const userDataPath = app.getPath('userData');
     app.setPath('userData', `${userDataPath} (development)`);
@@ -100,9 +100,12 @@ module.exports = (app, mainWindow) => {
       ...defaultOptions,
       ...(store.get('options') || {})
     };
-    startDownloading(episode.magnet, mainWindow, anime, {
+    startDownloading(episode.magnet, anime, {
       store,
-      downloadPath
+      downloadPath,
+      mainWindow,
+      app,
+      tray
     });
   });
 
@@ -115,9 +118,12 @@ module.exports = (app, mainWindow) => {
   aniListCD.forEach(anime => {
     anime.episodes.forEach(ep => {
       if (ep.inProgress) {
-        startDownloading(ep.magnet, mainWindow, anime, {
+        startDownloading(ep.magnet, anime, {
           store,
-          downloadPath
+          downloadPath,
+          mainWindow,
+          app,
+          tray
         });
       }
     });
