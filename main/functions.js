@@ -101,7 +101,7 @@ function chooseHash(hashes, { title, episode }) {
 }
 
 // Download anime episodes
-function startDownloading(magnet, event, anime, { store, downloadPath }) {
+function startDownloading(magnet, mainWindow, anime, { store, downloadPath }) {
   let folder = anime.title;
   // Replace illegal characters on windows
   if (isWin) {
@@ -113,52 +113,60 @@ function startDownloading(magnet, event, anime, { store, downloadPath }) {
     downloadPath + (downloadPath.endsWith('/') ? '' : '/') + folder;
 
   client.add(magnetURI, { path: pathname }, function(torrent) {
-    event.sender.send('torrent-progress', {
-      key: magnet,
-      bytes: 0,
-      downloaded: 0,
-      speed: 0,
-      progress: 0
-    });
     console.log('Client is downloading:', torrent.infoHash);
 
-    torrent.on('done', function() {
-      console.log('torrent download finished');
-
-      let aniList = store.get('aniList') || [];
-      let { episodes } = aniList.filter(val => val.mal_id === anime.mal_id)[0];
-
-      episodes = episodes.map(val => {
-        if (val.magnet === magnetURI) {
-          for (let i = 0; i < torrent.files.length; i++) {
-            val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
+    const aniList = store.get('aniList') || [];
+    aniList.forEach(val => {
+      if (val.mal_id === anime.mal_id) {
+        val.episodes.forEach(ep => {
+          if (ep.magnet === magnetURI) {
+            ep.inProgress = true;
           }
-        }
-
-        return val;
-      });
-
-      aniList = aniList.map(val => {
-        if (val.mal_id === anime.mal_id) {
-          val.episodes = episodes;
-        }
-
-        return val;
-      });
-
-      store.set('aniList', aniList);
+        });
+      }
     });
-    torrent.on('error', function(err) {
-      console.log(err);
+    store.set('aniList', aniList);
+
+    mainWindow.webContents.send('torrent-progress', {
+      key: magnet,
+      bytes: 0,
+      downloaded: torrent.downloaded,
+      speed: torrent.downloadSpeed,
+      progress: torrent.progress
     });
+
     torrent.on('download', function(bytes) {
-      event.sender.send('torrent-progress', {
+      mainWindow.webContents.send('torrent-progress', {
         key: magnet,
         bytes,
         downloaded: torrent.downloaded,
         speed: torrent.downloadSpeed,
         progress: torrent.progress
       });
+    });
+
+    torrent.on('done', function() {
+      console.log('torrent download finished');
+      store.set('aniList', aniList);
+      const aniList = store.get('aniList') || [];
+      aniList.forEach(val => {
+        if (val.mal_id === anime.mal_id) {
+          val.episodes.forEach(ep => {
+            if (ep.magnet === magnetURI) {
+              for (let i = 0; i < torrent.files.length; i++) {
+                val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
+              }
+
+              ep.inProgress = false;
+            }
+          });
+        }
+      });
+      store.set('aniList', aniList);
+    });
+
+    torrent.on('error', function(err) {
+      console.log(err);
     });
   });
 }

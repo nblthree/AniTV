@@ -94,7 +94,7 @@ app.on('ready', async () => {
   tray.on('double-click', toggleActivity);
 
   let submenuShown = false;
-  prepareIpc(app);
+  prepareIpc(app, mainWindow);
   const menu = await getContextMenu();
   tray.on('right-click', async event => {
     if (mainWindow.isVisible()) {
