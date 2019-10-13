@@ -147,6 +147,7 @@ function startDownloading(
         client.downloadSpeed
       )} down, ${bytesConverter(client.uploadSpeed)} up`
     );
+    // Will work on windows after https://github.com/electron/electron/pull/19265 is released
     tray.on('mouse-move', () => {
       tray.setToolTip(
         `${app.getName()} ${app.getVersion()}\n${
