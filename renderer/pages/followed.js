@@ -44,7 +44,11 @@ export default class Followed extends Component {
         return {
           followedAnime: this.ipcRenderer
             .sendSync('get-aniList')
-            .filter(val => val.mal_id === prev.followedAnime.mal_id)[0],
+            .filter(
+              val =>
+                val.mal_id ===
+                (prev.followedAnime ? prev.followedAnime.mal_id : null)
+            )[0],
           torrent
         };
       }

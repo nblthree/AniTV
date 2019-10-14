@@ -158,14 +158,13 @@ function startDownloading(
 
     torrent.on('done', function() {
       console.log('torrent download finished');
-      store.set('aniList', aniList);
       const aniList = store.get('aniList') || [];
       aniList.forEach(val => {
         if (val.mal_id === anime.mal_id) {
           val.episodes.forEach(ep => {
             if (ep.magnet === magnetURI) {
               for (let i = 0; i < torrent.files.length; i++) {
-                val.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
+                ep.pathnames[i] = `${pathname}/${torrent.files[i].path}`;
               }
 
               ep.inProgress = false;
