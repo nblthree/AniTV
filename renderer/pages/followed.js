@@ -47,7 +47,9 @@ export default class Followed extends Component {
             .filter(
               val =>
                 val.mal_id ===
-                (prev.followedAnime ? prev.followedAnime.mal_id : null)
+                (this.state.followedAnime
+                  ? this.state.followedAnime.mal_id
+                  : null)
             )[0],
           torrent
         };
