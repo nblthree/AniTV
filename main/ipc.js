@@ -113,7 +113,7 @@ module.exports = (app, mainWindow, tray) => {
   });
 
   // Will work on windows after https://github.com/electron/electron/pull/19265 is released
-  tray.on('mouse-move', () => {
+  /* tray.on('mouse-move', () => {
     tray.setToolTip(
       `${app.getName()} ${app.getVersion()}\n${
         client.torrents.length
@@ -121,7 +121,7 @@ module.exports = (app, mainWindow, tray) => {
         client.downloadSpeed
       )} down, ${bytesConverter(client.uploadSpeed)} up`
     );
-  });
+  }); */
   // Until then use the following
   setInterval(() => {
     tray.setToolTip(
