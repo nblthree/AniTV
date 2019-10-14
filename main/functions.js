@@ -1,8 +1,6 @@
 const fuzz = require('fuzzball');
 const puppeteer = require('puppeteer');
-const WebTorrent = require('webtorrent');
 
-const client = new WebTorrent();
 const isWin = process.platform === 'win32';
 
 function isDuplicate(array, arg) {
@@ -26,6 +24,15 @@ function processTitle(title, episode, resolution) {
 
   title = fixedEncodeURI(title);
   return title;
+}
+
+function bytesConverter(bytes) {
+  let convertedValue = (bytes / 10 ** 3).toFixed(1); // KB
+  if (convertedValue < 1000) return `${convertedValue} KB/s`;
+  convertedValue = (bytes / 10 ** 6).toFixed(1); // MB
+  if (convertedValue < 1000) return `${convertedValue} MB/s`;
+  convertedValue = (bytes / 10 ** 9).toFixed(1); // GB
+  return `${convertedValue} GB/s`;
 }
 
 // Scrap data from nyaa. data contain magnet URI and episode title
@@ -101,7 +108,11 @@ function chooseHash(hashes, { title, episode }) {
 }
 
 // Download anime episodes
-function startDownloading(magnet, mainWindow, anime, { store, downloadPath }) {
+function startDownloading(
+  magnet,
+  anime,
+  { store, downloadPath, mainWindow, client }
+) {
   let folder = anime.title;
   // Replace illegal characters on windows
   if (isWin) {
@@ -265,4 +276,9 @@ function getHorribleSubs(title, resolution) {
   });
 }
 
-module.exports = { getHorribleSubs, getAnimeEpisodes, startDownloading };
+module.exports = {
+  getHorribleSubs,
+  getAnimeEpisodes,
+  startDownloading,
+  bytesConverter
+};

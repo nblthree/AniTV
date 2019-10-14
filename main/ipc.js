@@ -6,14 +6,18 @@ const { ipcMain, Notification, dialog } = require('electron');
 const isDev = require('electron-is-dev');
 const fs = require('fs-extra');
 const Store = require('electron-store');
+const WebTorrent = require('webtorrent');
+
+const client = new WebTorrent();
 
 const {
   getHorribleSubs,
   getAnimeEpisodes,
-  startDownloading
+  startDownloading,
+  bytesConverter
 } = require('./functions');
 
-module.exports = (app, mainWindow) => {
+module.exports = (app, mainWindow, tray) => {
   if (isDev) {
     const userDataPath = app.getPath('userData');
     app.setPath('userData', `${userDataPath} (development)`);
@@ -100,11 +104,34 @@ module.exports = (app, mainWindow) => {
       ...defaultOptions,
       ...(store.get('options') || {})
     };
-    startDownloading(episode.magnet, mainWindow, anime, {
+    startDownloading(episode.magnet, anime, {
       store,
-      downloadPath
+      downloadPath,
+      mainWindow,
+      client
     });
   });
+
+  // Will work on windows after https://github.com/electron/electron/pull/19265 is released
+  /* tray.on('mouse-move', () => {
+    tray.setToolTip(
+      `${app.getName()} ${app.getVersion()}\n${
+        client.torrents.length
+      } downloading, ${0} seeding\n${bytesConverter(
+        client.downloadSpeed
+      )} down, ${bytesConverter(client.uploadSpeed)} up`
+    );
+  }); */
+  // Until then use the following
+  setInterval(() => {
+    tray.setToolTip(
+      `${app.getName()} ${app.getVersion()}\n${
+        client.torrents.length
+      } downloading, ${0} seeding\n${bytesConverter(
+        client.downloadSpeed
+      )} down, ${bytesConverter(client.uploadSpeed)} up`
+    );
+  }, 2000);
 
   // Continue downloading
   const { downloadPath } = {
@@ -115,9 +142,11 @@ module.exports = (app, mainWindow) => {
   aniListCD.forEach(anime => {
     anime.episodes.forEach(ep => {
       if (ep.inProgress) {
-        startDownloading(ep.magnet, mainWindow, anime, {
+        startDownloading(ep.magnet, anime, {
           store,
-          downloadPath
+          downloadPath,
+          mainWindow,
+          client
         });
       }
     });
