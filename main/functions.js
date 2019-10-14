@@ -1,8 +1,6 @@
 const fuzz = require('fuzzball');
 const puppeteer = require('puppeteer');
-const WebTorrent = require('webtorrent');
 
-const client = new WebTorrent();
 const isWin = process.platform === 'win32';
 
 function isDuplicate(array, arg) {
@@ -113,7 +111,7 @@ function chooseHash(hashes, { title, episode }) {
 function startDownloading(
   magnet,
   anime,
-  { store, downloadPath, mainWindow, app, tray }
+  { store, downloadPath, mainWindow, client }
 ) {
   let folder = anime.title;
   // Replace illegal characters on windows
@@ -139,24 +137,6 @@ function startDownloading(
       }
     });
     store.set('aniList', aniList);
-
-    tray.setToolTip(
-      `${app.getName()} ${app.getVersion()}\n${
-        client.torrents.length
-      } downloading, ${0} seeding\n${bytesConverter(
-        client.downloadSpeed
-      )} down, ${bytesConverter(client.uploadSpeed)} up`
-    );
-    // Will work on windows after https://github.com/electron/electron/pull/19265 is released
-    tray.on('mouse-move', () => {
-      tray.setToolTip(
-        `${app.getName()} ${app.getVersion()}\n${
-          client.torrents.length
-        } downloading, ${0} seeding\n${bytesConverter(
-          client.downloadSpeed
-        )} down, ${bytesConverter(client.uploadSpeed)} up`
-      );
-    });
 
     mainWindow.webContents.send('torrent-progress', {
       key: magnet,
@@ -296,4 +276,9 @@ function getHorribleSubs(title, resolution) {
   });
 }
 
-module.exports = { getHorribleSubs, getAnimeEpisodes, startDownloading };
+module.exports = {
+  getHorribleSubs,
+  getAnimeEpisodes,
+  startDownloading,
+  bytesConverter
+};

@@ -6,11 +6,15 @@ const { ipcMain, Notification, dialog } = require('electron');
 const isDev = require('electron-is-dev');
 const fs = require('fs-extra');
 const Store = require('electron-store');
+const WebTorrent = require('webtorrent');
+
+const client = new WebTorrent();
 
 const {
   getHorribleSubs,
   getAnimeEpisodes,
-  startDownloading
+  startDownloading,
+  bytesConverter
 } = require('./functions');
 
 module.exports = (app, mainWindow, tray) => {
@@ -104,10 +108,30 @@ module.exports = (app, mainWindow, tray) => {
       store,
       downloadPath,
       mainWindow,
-      app,
-      tray
+      client
     });
   });
+
+  // Will work on windows after https://github.com/electron/electron/pull/19265 is released
+  tray.on('mouse-move', () => {
+    tray.setToolTip(
+      `${app.getName()} ${app.getVersion()}\n${
+        client.torrents.length
+      } downloading, ${0} seeding\n${bytesConverter(
+        client.downloadSpeed
+      )} down, ${bytesConverter(client.uploadSpeed)} up`
+    );
+  });
+  // Until then use the following
+  setInterval(() => {
+    tray.setToolTip(
+      `${app.getName()} ${app.getVersion()}\n${
+        client.torrents.length
+      } downloading, ${0} seeding\n${bytesConverter(
+        client.downloadSpeed
+      )} down, ${bytesConverter(client.uploadSpeed)} up`
+    );
+  }, 2000);
 
   // Continue downloading
   const { downloadPath } = {
@@ -122,8 +146,7 @@ module.exports = (app, mainWindow, tray) => {
           store,
           downloadPath,
           mainWindow,
-          app,
-          tray
+          client
         });
       }
     });
