@@ -5,7 +5,7 @@ const { join } = require('path');
 const { BrowserWindow, app, Tray, dialog } = require('electron');
 const isDev = require('electron-is-dev');
 const prepareNext = require('electron-next');
-// Const { autoUpdater } = require('electron-updater');
+const { autoUpdater } = require('electron-updater');
 
 const prepareIpc = require('./ipc');
 const getContextMenu = require('./context-menu');
@@ -40,10 +40,6 @@ process.on('unhandledRejection', error => {
 
 // Prepare the renderer once the app is ready
 app.on('ready', async () => {
-  /* If (!isDev) {
-    autoUpdater.checkForUpdatesAndNotify();
-  } */
-
   await prepareNext('./renderer');
 
   const mainWindow = new BrowserWindow({
@@ -114,6 +110,15 @@ app.on('ready', async () => {
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
+  } else {
+    autoUpdater.checkForUpdatesAndNotify();
+    autoUpdater.on('update-available', () => {
+      mainWindow.webContents.send('update_available');
+    });
+    autoUpdater.on('update-downloaded', () => {
+      mainWindow.webContents.send('update_downloaded');
+      autoUpdater.quitAndInstall();
+    });
   }
 
   const url = isDev
