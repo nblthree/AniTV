@@ -60,7 +60,7 @@ export default class Followed extends Component {
                       key={ep.magnet + ep.number}
                       anime={this.state.selectedAnime}
                       ep={ep}
-                      updateSelectedAnime={this.showEpisodes}
+                      update={this.showEpisodes}
                     />
                   );
                 })}

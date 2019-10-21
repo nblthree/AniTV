@@ -1,4 +1,3 @@
-import { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/layout';
 import Video from '../components/video';
@@ -9,50 +8,17 @@ export default class Start extends Component {
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
       aniList:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || [],
-      torrent:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
-        {},
-      unfound: []
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || []
     };
 
-    this.download = this.download.bind(this);
-    this.torrentState = this.torrentState.bind(this);
-    this.handleError = this.handleError.bind(this);
-    this.playEpisode = this.playEpisode.bind(this);
+    this.update = this.update.bind(this);
   }
 
-  componentDidMount() {
-    this.ipcRenderer.on('torrent-progress', this.torrentState);
-  }
-
-  componentWillUnmount() {
-    this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
-  }
-
-  torrentState(event, arg) {
-    this.setState(prev => {
-      const { torrent } = prev;
-      torrent[arg.key] = arg;
-      return {
-        torrent
-      };
+  update() {
+    this.setState({
+      aniList:
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || []
     });
-  }
-
-  download(obj) {
-    this.ipcRenderer.send('start-download', obj);
-  }
-
-  handleError(path) {
-    this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
-  }
-
-  playEpisode({ mal_id, episode, target }) {
-    if (!this.state.unfound.includes(target.src)) {
-      shell.openExternal(target.src);
-      this.ipcRenderer.send('watched-episode', { mal_id, episode });
-    }
   }
 
   render() {
@@ -78,12 +44,8 @@ export default class Start extends Component {
                         <Video
                           key={ep.magnet + ep.number}
                           anime={val}
-                          torrent={this.state.torrent}
                           ep={ep}
-                          unfound={this.state.unfound}
-                          handleError={this.handleError}
-                          playEpisode={this.playEpisode}
-                          download={this.download}
+                          update={this.supdateAniList}
                         />
                       );
                     })}

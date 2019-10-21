@@ -58,8 +58,8 @@ export default class video extends Component {
       };
     });
 
-    if (arg.progress === 1 && this.props.updateSelectedAnime) {
-      this.props.updateSelectedAnime(this.props.anime);
+    if (arg.progress === 1) {
+      this.props.update(this.props.anime);
     }
   }
 
