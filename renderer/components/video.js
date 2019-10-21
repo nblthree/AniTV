@@ -1,3 +1,4 @@
+import { shell } from 'electron';
 import { Component } from 'react';
 
 function bytesConverter(bytes) {
@@ -8,6 +9,60 @@ function bytesConverter(bytes) {
 }
 
 export default class video extends Component {
+  constructor(props) {
+    super(props);
+    this.ipcRenderer = global.ipcRenderer;
+    this.state = {
+      torrent:
+        (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
+        {},
+      unfound: []
+    };
+
+    this.download = this.download.bind(this);
+    this.torrentState = this.torrentState.bind(this);
+    this.handleError = this.handleError.bind(this);
+    this.playEpisode = this.playEpisode.bind(this);
+  }
+
+  componentDidMount() {
+    this.ipcRenderer.on('torrent-progress', this.torrentState);
+  }
+
+  componentWillUnmount() {
+    this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
+  }
+
+  download(obj) {
+    this.ipcRenderer.send('start-download', obj);
+  }
+
+  handleError(path) {
+    this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
+  }
+
+  playEpisode({ mal_id, episode, target }) {
+    if (!this.state.unfound.includes(target.src)) {
+      shell.openExternal(target.src);
+      this.ipcRenderer.send('watched-episode', { mal_id, episode });
+    }
+  }
+
+  torrentState(event, arg) {
+    this.setState(prev => {
+      const { torrent } = prev;
+      torrent[arg.key] = arg;
+
+      return {
+        torrent
+      };
+    });
+
+    if (arg.progress === 1 && this.props.updateSelectedAnime) {
+      this.props.updateSelectedAnime(this.props.anime);
+    }
+  }
+
   render() {
     return (
       <div className="episode">
@@ -15,40 +70,40 @@ export default class video extends Component {
           <div
             className="progress-bar"
             style={{
-              width: this.props.torrent[this.props.ep.magnet]
-                ? `${this.props.torrent[this.props.ep.magnet].progress * 100}%`
+              width: this.state.torrent[this.props.ep.magnet]
+                ? `${this.state.torrent[this.props.ep.magnet].progress * 100}%`
                 : 0,
               backgroundColor:
-                this.props.torrent[this.props.ep.magnet] &&
-                this.props.torrent[this.props.ep.magnet].progress === 1
+                this.state.torrent[this.props.ep.magnet] &&
+                this.state.torrent[this.props.ep.magnet].progress === 1
                   ? '#95ff95'
                   : '#5555ff'
             }}
           />
-          {this.props.torrent[this.props.ep.magnet] &&
-          this.props.torrent[this.props.ep.magnet].progress < 1 ? (
+          {this.state.torrent[this.props.ep.magnet] &&
+          this.state.torrent[this.props.ep.magnet].progress < 1 ? (
             <div className="download_speed">
               <span>
                 {bytesConverter(
-                  this.props.torrent[this.props.ep.magnet].downloaded
+                  this.state.torrent[this.props.ep.magnet].downloaded
                 )}
               </span>
               <span>
-                {bytesConverter(this.props.torrent[this.props.ep.magnet].speed)}
+                {bytesConverter(this.state.torrent[this.props.ep.magnet].speed)}
               </span>
             </div>
           ) : null}
         </div>
         {(this.props.ep.pathnames.length > 0 &&
           !this.props.unfound.includes(this.props.ep.pathnames[0])) ||
-        (this.props.torrent[this.props.ep.magnet] &&
-          this.props.torrent[this.props.ep.magnet].progress <= 1) ? (
+        (this.state.torrent[this.props.ep.magnet] &&
+          this.state.torrent[this.props.ep.magnet].progress <= 1) ? (
           <video
             onError={() => this.props.handleError(this.props.ep.pathnames[0])}
             src={this.props.ep.pathnames[0]}
             onClick={e => {
               if (this.props.ep.pathnames[0]) {
-                this.props.playEpisode({
+                this.playEpisode({
                   mal_id: this.props.anime.mal_id,
                   episode: this.props.ep,
                   target: e.target
@@ -60,7 +115,7 @@ export default class video extends Component {
           <button
             type="button"
             onClick={() =>
-              this.props.download({
+              this.download({
                 anime: this.props.anime,
                 episode: this.props.ep
               })
