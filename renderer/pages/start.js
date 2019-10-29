@@ -1,4 +1,3 @@
-import { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/layout';
 import Video from '../components/video';
@@ -12,14 +11,10 @@ export default class Start extends Component {
         (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || [],
       torrent:
         (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
-        {},
-      unfound: []
+        {}
     };
 
-    this.download = this.download.bind(this);
     this.torrentState = this.torrentState.bind(this);
-    this.handleError = this.handleError.bind(this);
-    this.playEpisode = this.playEpisode.bind(this);
   }
 
   componentDidMount() {
@@ -34,25 +29,18 @@ export default class Start extends Component {
     this.setState(prev => {
       const { torrent } = prev;
       torrent[arg.key] = arg;
+      if (arg.progress === 1) {
+        return {
+          torrent,
+          aniList:
+            (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || []
+        };
+      }
+
       return {
         torrent
       };
     });
-  }
-
-  download(obj) {
-    this.ipcRenderer.send('start-download', obj);
-  }
-
-  handleError(path) {
-    this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
-  }
-
-  playEpisode({ mal_id, episode, target }) {
-    if (!this.state.unfound.includes(target.src)) {
-      shell.openExternal(target.src);
-      this.ipcRenderer.send('watched-episode', { mal_id, episode });
-    }
   }
 
   render() {
@@ -77,13 +65,9 @@ export default class Start extends Component {
                       return (
                         <Video
                           key={ep.magnet + ep.number}
-                          anime={val}
                           torrent={this.state.torrent}
+                          anime={val}
                           ep={ep}
-                          unfound={this.state.unfound}
-                          handleError={this.handleError}
-                          playEpisode={this.playEpisode}
-                          download={this.download}
                         />
                       );
                     })}

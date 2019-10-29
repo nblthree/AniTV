@@ -1,4 +1,3 @@
-import { shell } from 'electron';
 import { Component } from 'react';
 import Layout from '../components/layout';
 import CadreEpisodes from '../components/cadre-episodes';
@@ -12,20 +11,16 @@ export default class Followed extends Component {
       animesTV:
         (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) ||
         [],
-      followedAnime: false,
+      selectedAnime: false,
       torrent:
         (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
-        {},
-      unfound: []
+        {}
     };
 
     this.showEpisodes = this.showEpisodes.bind(this);
-    this.download = this.download.bind(this);
     this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
     this.setAsWatched = this.setAsWatched.bind(this);
-    this.handleError = this.handleError.bind(this);
-    this.playEpisode = this.playEpisode.bind(this);
   }
 
   componentDidMount() {
@@ -63,7 +58,7 @@ export default class Followed extends Component {
 
   showEpisodes(anime) {
     this.setState({
-      followedAnime: anime
+      selectedAnime: anime
         ? this.ipcRenderer
             .sendSync('get-aniList')
             .filter(val => val.mal_id === anime.mal_id)[0]
@@ -79,26 +74,11 @@ export default class Followed extends Component {
     this.ipcRenderer.send('move-to-watched', anime);
   }
 
-  download(obj) {
-    this.ipcRenderer.send('start-download', obj);
-  }
-
-  handleError(path) {
-    this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
-  }
-
-  playEpisode({ mal_id, episode, target }) {
-    if (!this.state.unfound.includes(target.src)) {
-      shell.openExternal(target.src);
-      this.ipcRenderer.send('watched-episode', { mal_id, episode });
-    }
-  }
-
   render() {
     return (
       <Layout>
         <div>
-          {this.state.followedAnime ? (
+          {this.state.selectedAnime ? (
             <div className="episodes">
               <div
                 role="button"
@@ -108,17 +88,13 @@ export default class Followed extends Component {
                 }}
               />
               <div className="grid">
-                {this.state.followedAnime.episodes.map(ep => {
+                {this.state.selectedAnime.episodes.map(ep => {
                   return (
                     <Video
                       key={ep.magnet + ep.number}
-                      anime={this.state.followedAnime}
-                      torrent={this.state.torrent}
+                      anime={this.state.selectedAnime}
                       ep={ep}
-                      unfound={this.state.unfound}
-                      handleError={this.handleError}
-                      playEpisode={this.playEpisode}
-                      download={this.download}
+                      torrent={this.state.torrent}
                     />
                   );
                 })}

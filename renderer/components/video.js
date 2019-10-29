@@ -1,3 +1,4 @@
+import { shell } from 'electron';
 import { Component } from 'react';
 
 function bytesConverter(bytes) {
@@ -8,6 +9,33 @@ function bytesConverter(bytes) {
 }
 
 export default class video extends Component {
+  constructor(props) {
+    super(props);
+    this.ipcRenderer = global.ipcRenderer;
+    this.state = {
+      unfound: []
+    };
+
+    this.download = this.download.bind(this);
+    this.handleError = this.handleError.bind(this);
+    this.playEpisode = this.playEpisode.bind(this);
+  }
+
+  download(obj) {
+    this.ipcRenderer.send('start-download', obj);
+  }
+
+  handleError(path) {
+    this.setState(prev => ({ unfound: prev.unfound.concat(path) }));
+  }
+
+  playEpisode({ mal_id, episode, target }) {
+    if (!this.state.unfound.includes(target.src)) {
+      shell.openExternal(target.src);
+      this.ipcRenderer.send('watched-episode', { mal_id, episode });
+    }
+  }
+
   render() {
     return (
       <div className="episode">
@@ -40,7 +68,7 @@ export default class video extends Component {
           ) : null}
         </div>
         {(this.props.ep.pathnames.length > 0 &&
-          !this.props.unfound.includes(this.props.ep.pathnames[0])) ||
+          !this.state.unfound.includes(this.props.ep.pathnames[0])) ||
         (this.props.torrent[this.props.ep.magnet] &&
           this.props.torrent[this.props.ep.magnet].progress <= 1) ? (
           <video
@@ -48,7 +76,7 @@ export default class video extends Component {
             src={this.props.ep.pathnames[0]}
             onClick={e => {
               if (this.props.ep.pathnames[0]) {
-                this.props.playEpisode({
+                this.playEpisode({
                   mal_id: this.props.anime.mal_id,
                   episode: this.props.ep,
                   target: e.target
@@ -60,7 +88,7 @@ export default class video extends Component {
           <button
             type="button"
             onClick={() =>
-              this.props.download({
+              this.download({
                 anime: this.props.anime,
                 episode: this.props.ep
               })
