@@ -68,7 +68,7 @@ export default class video extends Component {
           ) : null}
         </div>
         {(this.props.ep.pathnames.length > 0 &&
-          !this.props.unfound.includes(this.props.ep.pathnames[0])) ||
+          !this.state.unfound.includes(this.props.ep.pathnames[0])) ||
         (this.props.torrent[this.props.ep.magnet] &&
           this.props.torrent[this.props.ep.magnet].progress <= 1) ? (
           <video
