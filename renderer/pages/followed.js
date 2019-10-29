@@ -18,8 +18,42 @@ export default class Followed extends Component {
     };
 
     this.showEpisodes = this.showEpisodes.bind(this);
+    this.torrentState = this.torrentState.bind(this);
     this.reload = this.reload.bind(this);
     this.setAsWatched = this.setAsWatched.bind(this);
+  }
+
+  componentDidMount() {
+    this.ipcRenderer.on('torrent-progress', this.torrentState);
+  }
+
+  componentWillUnmount() {
+    this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
+  }
+
+  torrentState(event, arg) {
+    this.setState(prev => {
+      const { torrent } = prev;
+      torrent[arg.key] = arg;
+      if (arg.progress === 1) {
+        return {
+          followedAnime: this.ipcRenderer
+            .sendSync('get-aniList')
+            .filter(
+              val =>
+                val.mal_id ===
+                (this.state.followedAnime
+                  ? this.state.followedAnime.mal_id
+                  : null)
+            )[0],
+          torrent
+        };
+      }
+
+      return {
+        torrent
+      };
+    });
   }
 
   showEpisodes(anime) {
@@ -60,7 +94,7 @@ export default class Followed extends Component {
                       key={ep.magnet + ep.number}
                       anime={this.state.selectedAnime}
                       ep={ep}
-                      update={this.showEpisodes}
+                      torrent={this.state.torrent}
                     />
                   );
                 })}

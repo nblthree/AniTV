@@ -13,24 +13,12 @@ export default class video extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      torrent:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
-        {},
       unfound: []
     };
 
     this.download = this.download.bind(this);
-    this.torrentState = this.torrentState.bind(this);
     this.handleError = this.handleError.bind(this);
     this.playEpisode = this.playEpisode.bind(this);
-  }
-
-  componentDidMount() {
-    this.ipcRenderer.on('torrent-progress', this.torrentState);
-  }
-
-  componentWillUnmount() {
-    this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
   }
 
   download(obj) {
@@ -48,21 +36,6 @@ export default class video extends Component {
     }
   }
 
-  torrentState(event, arg) {
-    this.setState(prev => {
-      const { torrent } = prev;
-      torrent[arg.key] = arg;
-
-      return {
-        torrent
-      };
-    });
-
-    if (arg.progress === 1) {
-      this.props.update(this.props.anime);
-    }
-  }
-
   render() {
     return (
       <div className="episode">
@@ -70,34 +43,34 @@ export default class video extends Component {
           <div
             className="progress-bar"
             style={{
-              width: this.state.torrent[this.props.ep.magnet]
-                ? `${this.state.torrent[this.props.ep.magnet].progress * 100}%`
+              width: this.props.torrent[this.props.ep.magnet]
+                ? `${this.props.torrent[this.props.ep.magnet].progress * 100}%`
                 : 0,
               backgroundColor:
-                this.state.torrent[this.props.ep.magnet] &&
-                this.state.torrent[this.props.ep.magnet].progress === 1
+                this.props.torrent[this.props.ep.magnet] &&
+                this.props.torrent[this.props.ep.magnet].progress === 1
                   ? '#95ff95'
                   : '#5555ff'
             }}
           />
-          {this.state.torrent[this.props.ep.magnet] &&
-          this.state.torrent[this.props.ep.magnet].progress < 1 ? (
+          {this.props.torrent[this.props.ep.magnet] &&
+          this.props.torrent[this.props.ep.magnet].progress < 1 ? (
             <div className="download_speed">
               <span>
                 {bytesConverter(
-                  this.state.torrent[this.props.ep.magnet].downloaded
+                  this.props.torrent[this.props.ep.magnet].downloaded
                 )}
               </span>
               <span>
-                {bytesConverter(this.state.torrent[this.props.ep.magnet].speed)}
+                {bytesConverter(this.props.torrent[this.props.ep.magnet].speed)}
               </span>
             </div>
           ) : null}
         </div>
         {(this.props.ep.pathnames.length > 0 &&
           !this.props.unfound.includes(this.props.ep.pathnames[0])) ||
-        (this.state.torrent[this.props.ep.magnet] &&
-          this.state.torrent[this.props.ep.magnet].progress <= 1) ? (
+        (this.props.torrent[this.props.ep.magnet] &&
+          this.props.torrent[this.props.ep.magnet].progress <= 1) ? (
           <video
             onError={() => this.props.handleError(this.props.ep.pathnames[0])}
             src={this.props.ep.pathnames[0]}
