@@ -7,17 +7,17 @@ export default class Start extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      aniList:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || [],
-      torrent:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
-        {}
+      aniList: [],
+      torrent: {}
     };
 
     this.torrentState = this.torrentState.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    const aniList = await this.ipcRenderer.invoke('get-aniList');
+    const torrent = await this.ipcRenderer.invoke('get-downloadedEpi');
+    this.setState({ aniList, torrent });
     this.ipcRenderer.on('torrent-progress', this.torrentState);
   }
 
@@ -25,15 +25,19 @@ export default class Start extends Component {
     this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
   }
 
-  torrentState(event, arg) {
+  async torrentState(event, arg) {
+    let aniList = null;
+    if (arg.progress === 1) {
+      aniList = await this.ipcRenderer.invoke('get-aniList');
+    }
+
     this.setState(prev => {
       const { torrent } = prev;
       torrent[arg.key] = arg;
       if (arg.progress === 1) {
         return {
           torrent,
-          aniList:
-            (this.ipcRenderer && this.ipcRenderer.sendSync('get-aniList')) || []
+          aniList
         };
       }
 

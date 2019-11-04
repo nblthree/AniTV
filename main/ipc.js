@@ -38,9 +38,9 @@ module.exports = (app, mainWindow, tray) => {
     path: app.getPath('exe')
   });
 
-  ipcMain.on('get-options', event => {
+  ipcMain.handle('get-options', async () => {
     const options = { ...defaultOptions, ...(store.get('options') || {}) };
-    event.returnValue = options;
+    return options;
   });
 
   ipcMain.on('set-path', async event => {
@@ -85,8 +85,8 @@ module.exports = (app, mainWindow, tray) => {
   });
 
   // Get-set the animes of the current season
-  ipcMain.on('get-season', event => {
-    event.returnValue = store.get('season') || [];
+  ipcMain.handle('get-season', async () => {
+    return store.get('season') || [];
   });
 
   ipcMain.on('set-season', (event, arg) => {
@@ -94,8 +94,8 @@ module.exports = (app, mainWindow, tray) => {
   });
 
   // Get the followed animes with additional data like episodes torrent Magnet URI
-  ipcMain.on('get-aniList', event => {
-    event.returnValue = store.get('aniList') || [];
+  ipcMain.handle('get-aniList', async () => {
+    return store.get('aniList') || [];
   });
 
   // Trigger download (triggered by a click on a button)
@@ -112,26 +112,15 @@ module.exports = (app, mainWindow, tray) => {
     });
   });
 
-  // Will work on windows after https://github.com/electron/electron/pull/19265 is released
-  /* tray.on('mouse-move', () => {
+  tray.on('mouse-move', () => {
     tray.setToolTip(
-      `${app.getName()} ${app.getVersion()}\n${
+      `${app.name} ${app.getVersion()}\n${
         client.torrents.length
       } downloading, ${0} seeding\n${bytesConverter(
         client.downloadSpeed
       )} down, ${bytesConverter(client.uploadSpeed)} up`
     );
-  }); */
-  // Until then use the following
-  setInterval(() => {
-    tray.setToolTip(
-      `${app.getName()} ${app.getVersion()}\n${
-        client.torrents.length
-      } downloading, ${0} seeding\n${bytesConverter(
-        client.downloadSpeed
-      )} down, ${bytesConverter(client.uploadSpeed)} up`
-    );
-  }, 2000);
+  });
 
   // Continue downloading
   const { downloadPath } = {
@@ -153,13 +142,13 @@ module.exports = (app, mainWindow, tray) => {
   });
 
   // Get the followed animes
-  ipcMain.on('get-followedAni', event => {
-    event.returnValue = store.get('followedAni') || [];
+  ipcMain.handle('get-followedAni', async () => {
+    return store.get('followedAni') || [];
   });
 
   // Get the watched animes
-  ipcMain.on('get-watchedAni', event => {
-    event.returnValue = store.get('watchedAni') || [];
+  ipcMain.handle('get-watchedAni', async () => {
+    return store.get('watchedAni') || [];
   });
 
   // Set the followed animes and update aniList
@@ -324,7 +313,7 @@ module.exports = (app, mainWindow, tray) => {
   });
 
   // Get the downloaded episodes
-  ipcMain.on('get-downloadedEpi', async event => {
+  ipcMain.handle('get-downloadedEpi', async () => {
     const aniList = store.get('aniList') || [];
     const torrent = {};
     for (const val of aniList) {
@@ -345,6 +334,6 @@ module.exports = (app, mainWindow, tray) => {
       }
     }
 
-    event.returnValue = torrent;
+    return torrent;
   });
 };

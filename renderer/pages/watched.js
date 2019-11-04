@@ -7,12 +7,16 @@ export default class Watched extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      watchedAni:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-watchedAni')) || [],
+      watchedAni: [],
       info: false
     };
 
     this.handleInfo = this.handleInfo.bind(this);
+  }
+
+  async componentDidMount() {
+    const watchedAni = await this.ipcRenderer.invoke('get-watchedAni');
+    this.setState({ watchedAni });
   }
 
   handleInfo(info) {

@@ -56,7 +56,9 @@ app.on('ready', async () => {
 
   const tray = new Tray(join(__dirname, 'static/icons/icon.png'));
   tray.setToolTip(
-    `${app.getName()} ${app.getVersion()}\n0 downloading, 0 seeding\n0.0 kB/s down, 0.0 kB/s up`
+    `${
+      app.name
+    } ${app.getVersion()}\n0 downloading, 0 seeding\n0.0 kB/s down, 0.0 kB/s up`
   );
 
   const gotInstanceLock = app.requestSingleInstanceLock();

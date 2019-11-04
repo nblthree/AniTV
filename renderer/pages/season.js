@@ -38,11 +38,8 @@ export default class Season extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      animesTV:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-season')) || [],
-      followedAni:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) ||
-        [],
+      animesTV: [],
+      followedAni: [],
       info: false,
       onLoad: false
     };
@@ -52,6 +49,10 @@ export default class Season extends Component {
   }
 
   async componentDidMount() {
+    const animesTV = await this.ipcRenderer.invoke('get-season');
+    const followedAni = await this.ipcRenderer.invoke('get-followedAni');
+    this.setState({ animesTV, followedAni });
+
     try {
       const response = await fetch(
         `https://api.jikan.moe/v3/season/${new Date().getYear() +

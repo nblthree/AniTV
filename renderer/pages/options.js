@@ -6,8 +6,7 @@ export default class Options extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      options:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-options')) || []
+      options: []
     };
 
     this.handlePath = this.handlePath.bind(this);
@@ -17,7 +16,9 @@ export default class Options extends Component {
     this.reloadPath = this.reloadPath.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    const options = await this.ipcRenderer.invoke('get-options');
+    this.setState({ options });
     this.ipcRenderer.on('reload-path', this.reloadPath);
   }
 

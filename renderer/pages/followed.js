@@ -8,13 +8,9 @@ export default class Followed extends Component {
     super(props);
     this.ipcRenderer = global.ipcRenderer;
     this.state = {
-      animesTV:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-followedAni')) ||
-        [],
+      animesTV: [],
       selectedAnime: false,
-      torrent:
-        (this.ipcRenderer && this.ipcRenderer.sendSync('get-downloadedEpi')) ||
-        {}
+      torrent: {}
     };
 
     this.showEpisodes = this.showEpisodes.bind(this);
@@ -23,7 +19,10 @@ export default class Followed extends Component {
     this.setAsWatched = this.setAsWatched.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    const animesTV = await this.ipcRenderer.invoke('get-followedAni');
+    const torrent = await this.ipcRenderer.invoke('get-downloadedEpi');
+    this.setState({ animesTV, torrent });
     this.ipcRenderer.on('torrent-progress', this.torrentState);
   }
 
@@ -31,21 +30,22 @@ export default class Followed extends Component {
     this.ipcRenderer.removeListener('torrent-progress', this.torrentState);
   }
 
-  torrentState(event, arg) {
-    this.setState(prev => {
+  async torrentState(event, arg) {
+    let followedAnime = null;
+    if (arg.progress === 1) {
+      followedAnime = (await this.ipcRenderer.invoke('get-aniList')).filter(
+        val =>
+          val.mal_id ===
+          (this.state.followedAnime ? this.state.followedAnime.mal_id : null)
+      )[0];
+    }
+
+    this.setState(async prev => {
       const { torrent } = prev;
       torrent[arg.key] = arg;
       if (arg.progress === 1) {
         return {
-          followedAnime: this.ipcRenderer
-            .sendSync('get-aniList')
-            .filter(
-              val =>
-                val.mal_id ===
-                (this.state.followedAnime
-                  ? this.state.followedAnime.mal_id
-                  : null)
-            )[0],
+          followedAnime,
           torrent
         };
       }
@@ -56,14 +56,13 @@ export default class Followed extends Component {
     });
   }
 
-  showEpisodes(anime) {
-    this.setState({
-      selectedAnime: anime
-        ? this.ipcRenderer
-            .sendSync('get-aniList')
-            .filter(val => val.mal_id === anime.mal_id)[0]
-        : false
-    });
+  async showEpisodes(anime) {
+    const selectedAnime = anime
+      ? (await this.ipcRenderer.invoke('get-aniList')).filter(
+          val => val.mal_id === anime.mal_id
+        )[0]
+      : false;
+    this.setState({ selectedAnime });
   }
 
   reload(anime) {
