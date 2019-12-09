@@ -9429,10 +9429,10 @@ webpack@4.39.0:
     watchpack "^1.6.0"
     webpack-sources "^1.4.1"
 
-webtorrent@^0.107.16:
-  version "0.107.16"
-  resolved "https://registry.yarnpkg.com/webtorrent/-/webtorrent-0.107.16.tgz#cf2231f87b3f4334f8eb56ba5aae80df8cd8521c"
-  integrity sha512-5fdPZFiZPxwbigAHtMVQ7ZCXbZSQlxgB6JPD77itpc9DdKYPpliFwCLsNiQpj1jmpo91HlHUJk+Xp3ks1fLUQg==
+webtorrent@^0.107.17:
+  version "0.107.17"
+  resolved "https://registry.yarnpkg.com/webtorrent/-/webtorrent-0.107.17.tgz#26e8cd71aab0d62adc0b33850953aeed4570011d"
+  integrity sha512-Oe7d3+jpmPRDAc645PccIJPYa2w3n3BEiMU7J/Q76QSPF3SDUK8jO7keUCC2qk4ckcbdkb98bYK6/uK7M8vsRA==
   dependencies:
     addr-to-ip-port "^1.4.2"
     bitfield "^3.0.0"
