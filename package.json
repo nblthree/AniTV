@@ -119,7 +119,7 @@
     "electron-updater": "^4.2.0",
     "fs-extra": "^8.0.1",
     "fuzzball": "^1.3.0",
-    "puppeteer": "^2.0.0",
+    "puppeteer": "^2.1.1",
     "webtorrent": "^0.107.17"
   }
 }
