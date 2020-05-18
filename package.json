@@ -38,8 +38,7 @@
         "LSUIElement": 1
       }
     },
-    "asar": true,
-    "asarUnpack": "node_modules/puppeteer/.local-chromium/**/*"
+    "asar": true
   },
   "author": "MarchWorks<edel.f.wool@gmail.com>",
   "license": "MIT",
