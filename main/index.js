@@ -43,7 +43,7 @@ app.on('ready', async () => {
   await prepareNext('./renderer');
 
   const mainWindow = new BrowserWindow({
-    width: 800,
+    width: 1200,
     height: 700,
     icon: join(__dirname, 'static/icons/icon.png'),
     webPreferences: {

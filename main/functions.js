@@ -1,5 +1,6 @@
 const fuzz = require('fuzzball');
-const puppeteer = require('puppeteer');
+const got = require('got');
+const { DOMParser } = require('xmldom');
 
 const isWin = process.platform === 'win32';
 
@@ -7,7 +8,7 @@ function isDuplicate(array, arg) {
   return array.some(val => val.magnet === arg.magnet);
 }
 
-// Encode the title to be used by puppeteer
+// Encode the title to be used by got
 function fixedEncodeURI(str) {
   return encodeURI(str)
     .replace(/[!'()*]/g, escape)
@@ -38,44 +39,27 @@ function bytesConverter(bytes) {
 // Scrap data from nyaa. data contain magnet URI and episode title
 async function getHashes(title, episode, { pageNumber = 1, resolution }) {
   const hashes = await new Promise(resolve => {
-    void (async () => {
+    (async () => {
       try {
-        const browser = await puppeteer.launch({
-          executablePath: puppeteer
-            .executablePath()
-            .replace(/app\.asar(\.unpacked)?/, 'app.asar.unpacked')
-        });
-        const page = await browser.newPage();
-        await page.goto(
-          `https://nyaa.si/?f=0&c=1_2&q=${processTitle(
+        const response = await got(
+          `https://nyaa.si/?page=rss&f=0&c=1_2&q=${processTitle(
             title,
             episode,
             resolution
           )}&p=${pageNumber}&s=seeders&o=desc`
         );
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(response.body, 'text/xml');
+        const items = xmlDoc.querySelectorAll('item');
+        const result = [];
 
-        const result = await page.evaluate(() => {
-          const grabFromItem = (item, selector, attr) => {
-            const val = item.querySelector(selector);
-            return val ? val[attr] : '';
-          };
+        for (let i = 0; i < items.length; i++) {
+          result.push({
+            title: items[i].querySelectorAll('title')[0].textContent,
+            magnet: items[i].querySelectorAll('nyaa:infoHash')[0].textContent
+          });
+        }
 
-          const data = document.querySelectorAll('tr');
-          const items = [...data].map(item => ({
-            title: grabFromItem(
-              item,
-              'td:nth-of-type(2) a:not([class])',
-              'title'
-            ),
-            magnet: grabFromItem(
-              item,
-              'td:nth-of-type(3) a:nth-of-type(2)',
-              'href'
-            )
-          }));
-          return items;
-        });
-        await browser.close();
         resolve(result);
       } catch (error) {
         console.error(error);

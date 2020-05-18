@@ -4,9 +4,9 @@
   "description": "Download and watch your preferred seasonal anime and get notified whenever a new episode is available",
   "version": "1.0.6",
   "repository": {
-	  "type" : "git",
-	  "url" : "https://github.com/MarchWorks/anitv.git"
-	},
+    "type": "git",
+    "url": "https://github.com/MarchWorks/anitv.git"
+  },
   "main": "main/index.js",
   "scripts": {
     "dev": "electron .",
@@ -17,7 +17,7 @@
     "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "test": "yarn test-lint",
     "test-lint": "xo",
-    "lintfix": "xo --fix"
+    "lint-fix": "xo --fix"
   },
   "build": {
     "appId": "com.marchworks.anitv",
@@ -29,7 +29,7 @@
     "win": {
       "icon": "main/static/icons/icon.png",
       "publish": {
-      	"provider": "github"
+        "provider": "github"
       }
     },
     "mac": {
@@ -50,9 +50,9 @@
   },
   "lint-staged": {
     "*.js": [
+      "yarn lint-fix",
       "yarn test-lint",
-      "prettier --single-quote --write --no-editorconfig",
-      "git add"
+      "prettier --single-quote --write --no-editorconfig"
     ]
   },
   "xo": {
@@ -119,7 +119,8 @@
     "electron-updater": "^4.2.0",
     "fs-extra": "^8.0.1",
     "fuzzball": "^1.3.0",
-    "puppeteer": "^2.1.1",
-    "webtorrent": "^0.107.17"
+    "got": "^11.1.4",
+    "webtorrent": "^0.107.17",
+    "xmldom": "^0.3.0"
   }
 }
