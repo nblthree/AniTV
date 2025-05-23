@@ -13,6 +13,11 @@ export default class Cadre extends Component {
   }
 
   render() {
+    // Add comprehensive logging for debugging image URLs
+    console.log('Cadre component - Anime data for image:', JSON.stringify(this.props.anime, null, 2));
+    console.log('Cadre component - Attempting to use image URL (direct):', this.props.anime.image_url);
+    console.log('Cadre component - Attempting to use image URL (v4 structure):', this.props.anime.images?.jpg?.image_url);
+
     return (
       <div className="cadre">
         {this.state.followed ? <div className="followed">Followed</div> : null}
@@ -64,7 +69,7 @@ export default class Cadre extends Component {
             .img {
               width: 100%;
               height: 100%;
-              background: url('${this.props.anime.image_url}')
+              background: url('${this.props.anime.images && this.props.anime.images.jpg && this.props.anime.images.jpg.image_url}')
             }
             .title {
               position: absolute;

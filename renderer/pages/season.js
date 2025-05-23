@@ -54,31 +54,38 @@ export default class Season extends Component {
     this.setState({ animesTV, followedAni });
 
     try {
-      let allAnimesTV = [];
       const baseUrl = `https://api.jikan.moe/v4/seasons/${new Date().getYear() + 1900}/${getSeason()}`;
-      for (let page = 1; page <= 3; page++) {
-        try {
-          const response = await fetch(`${baseUrl}?page=${page}`);
-          const data = await response.json();
-          if (data.data && data.data.length > 0) {
-            allAnimesTV = allAnimesTV.concat(data.data.filter(val => val.type === 'TV'));
-          } else {
-            // No more data, break early
-            break;
-          }
-        } catch (error) {
-          console.error(`Error fetching page ${page}:`, error);
-          // Optionally break or continue if one page fails
-        }
+      const response = await fetch(baseUrl); // Fetch only once
+      const data = await response.json();
+
+      let animesTVFromAPI = []; // Initialize
+      if (data.data && data.data.length > 0) {
+        animesTVFromAPI = data.data.filter(val => val.type === 'TV');
+      } else {
+        console.log("No data received from Jikan API or data.data is empty.");
       }
 
-      if (!allAnimesTV || allAnimesTV.length === 0) return;
-      this.setState({ animesTV: allAnimesTV });
+      // Add de-duplication logic here:
+      const uniqueAnimesMap = new Map();
+      animesTVFromAPI.forEach(anime => {
+        if (anime && anime.mal_id) { // Ensure anime and mal_id exist
+          uniqueAnimesMap.set(anime.mal_id, anime);
+        }
+      });
+      const animesTV = Array.from(uniqueAnimesMap.values());
+
+      // The existing console.log statements should now use 'animesTV' (the de-duplicated array):
+      console.log('Fetched animesTV before setState (de-duplicated):', JSON.stringify(animesTV, null, 2));
+      console.log(`Total items in animesTV before setState (de-duplicated): ${animesTV.length}`);
+
+      this.setState({ animesTV }); // Use the de-duplicated data
       if (this.ipcRenderer) {
-        this.ipcRenderer.send('set-season', allAnimesTV); // Use allAnimesTV here
+        this.ipcRenderer.send('set-season', animesTV); // Send the de-duplicated list
       }
     } catch (error) {
       console.log(error);
+      // Potentially clear animesTV or set an error state if fetch fails
+      this.setState({ animesTV: [] });
     }
 
     this.ipcRenderer.on('onload', this.dataLoading);
