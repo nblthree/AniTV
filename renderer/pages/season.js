@@ -54,17 +54,28 @@ export default class Season extends Component {
     this.setState({ animesTV, followedAni });
 
     try {
-      const response = await fetch(
-        `https://api.jikan.moe/v3/season/${new Date().getYear() +
-          1900}/${getSeason()}`
-      );
-      const data = await response.json();
+      let allAnimesTV = [];
+      const baseUrl = `https://api.jikan.moe/v4/seasons/${new Date().getYear() + 1900}/${getSeason()}`;
+      for (let page = 1; page <= 3; page++) {
+        try {
+          const response = await fetch(`${baseUrl}?page=${page}`);
+          const data = await response.json();
+          if (data.data && data.data.length > 0) {
+            allAnimesTV = allAnimesTV.concat(data.data.filter(val => val.type === 'TV'));
+          } else {
+            // No more data, break early
+            break;
+          }
+        } catch (error) {
+          console.error(`Error fetching page ${page}:`, error);
+          // Optionally break or continue if one page fails
+        }
+      }
 
-      const animesTV = data.anime.filter(val => val.type === 'TV');
-      if (!animesTV || animesTV.length === 0) return;
-      this.setState({ animesTV });
+      if (!allAnimesTV || allAnimesTV.length === 0) return;
+      this.setState({ animesTV: allAnimesTV });
       if (this.ipcRenderer) {
-        this.ipcRenderer.send('set-season', this.state.animesTV);
+        this.ipcRenderer.send('set-season', allAnimesTV); // Use allAnimesTV here
       }
     } catch (error) {
       console.log(error);
@@ -123,7 +134,7 @@ export default class Season extends Component {
               <div className="title">{this.state.info.title}</div>
               <div className="synopsis">{this.state.info.synopsis}</div>
               <div className="data">
-                <div>Airing Start: {this.state.info.airing_start}</div>
+                <div>Airing Start: {this.state.info.aired && this.state.info.aired.from}</div>
                 <div>Episodes: {this.state.info.episodes}</div>
                 <div>
                   Genres:{' '}
