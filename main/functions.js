@@ -49,14 +49,14 @@ async function getHashes(title, episode, { pageNumber = 1, resolution }) {
           )}&p=${pageNumber}&s=seeders&o=desc`
         );
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(response.body, 'text/xml');
-        const items = xmlDoc.querySelectorAll('item');
+        const xmlDoc = parser.parseFromString(response.body, 'application/xml');
+        const items = xmlDoc.getElementsByTagName('item');
         const result = [];
 
         for (let i = 0; i < items.length; i++) {
           result.push({
-            title: items[i].querySelectorAll('title')[0].textContent,
-            magnet: items[i].querySelectorAll('nyaa:infoHash')[0].textContent
+            title: items[i].getElementsByTagName('title')[0].textContent,
+            magnet: items[i].getElementsByTagName('nyaa:infoHash')[0].textContent
           });
         }
 

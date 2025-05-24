@@ -61,7 +61,7 @@ export default class CadreEpisode extends Component {
             .img {
               width: 100%;
               height: 100%;
-              background: url('${this.props.anime.image_url}')
+              background: url('${this.props.anime.images?.jpg?.image_url}');
             }
             .title {
               position: absolute;

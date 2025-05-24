@@ -74,10 +74,6 @@ export default class Season extends Component {
       });
       const animesTV = Array.from(uniqueAnimesMap.values());
 
-      // The existing console.log statements should now use 'animesTV' (the de-duplicated array):
-      console.log('Fetched animesTV before setState (de-duplicated):', JSON.stringify(animesTV, null, 2));
-      console.log(`Total items in animesTV before setState (de-duplicated): ${animesTV.length}`);
-
       this.setState({ animesTV }); // Use the de-duplicated data
       if (this.ipcRenderer) {
         this.ipcRenderer.send('set-season', animesTV); // Send the de-duplicated list
