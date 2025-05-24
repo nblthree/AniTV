@@ -227,10 +227,10 @@ function getAnimeEpisodes(anime, resolution) {
   });
 }
 
-// Return all episodes translated by HorribleSubs from all seasons (Match the anime title without any additions)
-function getHorribleSubs(title, resolution) {
+// Return all episodes translated by [Erai-raws] from all seasons (Match the anime title without any additions)
+function getTorrentsEpisodes(title, resolution) {
   return new Promise(async resolve => {
-    const newTitle = `[HorribleSubs] ${title
+    const newTitle = `[Erai-raws] ${title
       .replace(/season|nd|part|rd|th|s?\d+/gi, '')
       .replace(/  +/g, ' ')
       .trim()}`;
@@ -260,7 +260,7 @@ function getHorribleSubs(title, resolution) {
 }
 
 module.exports = {
-  getHorribleSubs,
+  getTorrentsEpisodes,
   getAnimeEpisodes,
   startDownloading,
   bytesConverter

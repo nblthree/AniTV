@@ -11,7 +11,7 @@ const WebTorrent = require('webtorrent');
 const client = new WebTorrent();
 
 const {
-  getHorribleSubs,
+  getTorrentsEpisodes,
   getAnimeEpisodes,
   startDownloading,
   bytesConverter
@@ -279,7 +279,7 @@ module.exports = (app, mainWindow, tray) => {
     store.set('aniList', aniList);
   });
 
-  // Use getHorribleSubs function to search for the episodes
+  // Use getTorrentsEpisodes function to search for the episodes
   ipcMain.on('reload-episodes', async (event, arg) => {
     let aniList = store.get('aniList') || [];
     aniList = aniList.filter(val => val.mal_id !== arg.mal_id);
@@ -289,7 +289,7 @@ module.exports = (app, mainWindow, tray) => {
       ...(store.get('options') || {})
     };
     try {
-      results = await getHorribleSubs(arg.title, resolution);
+      results = await getTorrentsEpisodes(arg.title, resolution);
     } catch (error) {
       console.error(error);
     }
