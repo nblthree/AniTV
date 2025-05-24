@@ -14,7 +14,7 @@
     "deploy": "yarn build-renderer && yarn deploy-app",
     "build-app": "electron-builder",
     "deploy-app": "electron-builder build --publish always",
-    "build-renderer": "cross-env NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production next build renderer && next export renderer",
+    "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "test": "yarn test-lint",
     "test-lint": "xo",
     "lint-fix": "xo --fix"
