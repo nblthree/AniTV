@@ -54,20 +54,38 @@ export default class Season extends Component {
     this.setState({ animesTV, followedAni });
 
     try {
-      const response = await fetch(
-        `https://api.jikan.moe/v3/season/${new Date().getYear() +
-          1900}/${getSeason()}`
-      );
+      const baseUrl = `https://api.jikan.moe/v4/seasons/${new Date().getYear() + 1900}/${getSeason()}`;
+      const response = await fetch(baseUrl); // Fetch only once
       const data = await response.json();
 
-      const animesTV = data.anime.filter(val => val.type === 'TV');
-      if (!animesTV || animesTV.length === 0) return;
-      this.setState({ animesTV });
+      let animesTVFromAPI = []; // Initialize
+      if (data.data && data.data.length > 0) {
+        animesTVFromAPI = data.data.filter(val => val.type === 'TV');
+      } else {
+        console.log("No data received from Jikan API or data.data is empty.");
+      }
+
+      // Add de-duplication logic here:
+      const uniqueAnimesMap = new Map();
+      animesTVFromAPI.forEach(anime => {
+        if (anime && anime.mal_id) { // Ensure anime and mal_id exist
+          uniqueAnimesMap.set(anime.mal_id, anime);
+        }
+      });
+      const animesTV = Array.from(uniqueAnimesMap.values());
+
+      // The existing console.log statements should now use 'animesTV' (the de-duplicated array):
+      console.log('Fetched animesTV before setState (de-duplicated):', JSON.stringify(animesTV, null, 2));
+      console.log(`Total items in animesTV before setState (de-duplicated): ${animesTV.length}`);
+
+      this.setState({ animesTV }); // Use the de-duplicated data
       if (this.ipcRenderer) {
-        this.ipcRenderer.send('set-season', this.state.animesTV);
+        this.ipcRenderer.send('set-season', animesTV); // Send the de-duplicated list
       }
     } catch (error) {
       console.log(error);
+      // Potentially clear animesTV or set an error state if fetch fails
+      this.setState({ animesTV: [] });
     }
 
     this.ipcRenderer.on('onload', this.dataLoading);
@@ -123,7 +141,7 @@ export default class Season extends Component {
               <div className="title">{this.state.info.title}</div>
               <div className="synopsis">{this.state.info.synopsis}</div>
               <div className="data">
-                <div>Airing Start: {this.state.info.airing_start}</div>
+                <div>Airing Start: {this.state.info.aired && this.state.info.aired.from}</div>
                 <div>Episodes: {this.state.info.episodes}</div>
                 <div>
                   Genres:{' '}
