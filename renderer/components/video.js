@@ -8,6 +8,30 @@ function bytesConverter(bytes) {
   return `${convertedValue}GB`;
 }
 
+function formatTimeRemaining(timeMillis) {
+  if (timeMillis === undefined || timeMillis === null || timeMillis <= 0) {
+    return "";
+  }
+
+  if (timeMillis < 60000) {
+    return "less than a minute remaining";
+  }
+
+  const minutes = Math.floor(timeMillis / 60000);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${minutes}m remaining`;
+  }
+
+  if (remainingMinutes === 0) {
+    return `${hours}h remaining`;
+  }
+
+  return `${hours}h ${remainingMinutes}m remaining`;
+}
+
 export default class video extends Component {
   constructor(props) {
     super(props);
@@ -63,6 +87,9 @@ export default class video extends Component {
               </span>
               <span>
                 {bytesConverter(this.props.torrent[this.props.ep.magnet].speed)}
+              </span>
+              <span>
+                {formatTimeRemaining(this.props.torrent[this.props.ep.magnet].timeRemaining)}
               </span>
             </div>
           ) : null}
