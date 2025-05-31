@@ -14,6 +14,8 @@ export default class Options extends Component {
     this.handleTimeInterval = this.handleTimeInterval.bind(this);
     this.handleRunOnBoot = this.handleRunOnBoot.bind(this);
     this.reloadPath = this.reloadPath.bind(this);
+    this.handleDownloadSpeedLimitChange = this.handleDownloadSpeedLimitChange.bind(this);
+    this.handleUploadSpeedLimitChange = this.handleUploadSpeedLimitChange.bind(this);
   }
 
   async componentDidMount() {
@@ -54,6 +56,24 @@ export default class Options extends Component {
     this.ipcRenderer.send('set-runOnBoot', target.value === 'true');
     this.setState(prev => ({
       options: { ...prev.options, runOnBoot: target.value === 'true' }
+    }));
+  }
+
+  handleDownloadSpeedLimitChange({ target }) {
+    const value = target.value === '' ? 0 : parseInt(target.value, 10);
+    if (isNaN(value) || value < 0) return; // Basic validation
+    this.ipcRenderer.send('set-download-speed-limit', value);
+    this.setState(prev => ({
+      options: { ...prev.options, downloadSpeedLimit: value }
+    }));
+  }
+
+  handleUploadSpeedLimitChange({ target }) {
+    const value = target.value === '' ? 0 : parseInt(target.value, 10);
+    if (isNaN(value) || value < 0) return; // Basic validation
+    this.ipcRenderer.send('set-upload-speed-limit', value);
+    this.setState(prev => ({
+      options: { ...prev.options, uploadSpeedLimit: value }
     }));
   }
 
@@ -127,6 +147,34 @@ export default class Options extends Component {
                 </select>
               </div>
             </div>
+
+            <div className="option">
+              <h3>Download Speed Limit (KB/s) - 0 for unlimited</h3>
+              <div className="flex">
+                <input
+                  type="number"
+                  min="0"
+                  className="speed-input"
+                  value={this.state.options.downloadSpeedLimit === undefined ? '' : this.state.options.downloadSpeedLimit}
+                  onChange={this.handleDownloadSpeedLimitChange}
+                  placeholder="0 for unlimited"
+                />
+              </div>
+            </div>
+
+            <div className="option">
+              <h3>Upload Speed Limit (KB/s) - 0 for unlimited</h3>
+              <div className="flex">
+                <input
+                  type="number"
+                  min="0"
+                  className="speed-input"
+                  value={this.state.options.uploadSpeedLimit === undefined ? '' : this.state.options.uploadSpeedLimit}
+                  onChange={this.handleUploadSpeedLimitChange}
+                  placeholder="0 for unlimited"
+                />
+              </div>
+            </div>
           </div>
           <style jsx>{`
             .input {
@@ -185,6 +233,26 @@ export default class Options extends Component {
               box-shadow: 0 0 0 3px -moz-mac-focusring;
               color: #222;
               outline: none;
+            }
+            .speed-input {
+              padding: 0.3em 0.7em 0.25em 0.4em;
+              font-size: 16px;
+              font-family: sans-serif;
+              font-weight: 700;
+              color: #fff;
+              background-color: #1a1b1b;
+              border: 1px solid #2b2b2b;
+              min-width: 20%;
+              box-sizing: border-box;
+              margin: 0;
+              outline: none;
+            }
+            .speed-input:hover {
+              border-color: #888;
+            }
+            .speed-input:focus {
+              border-color: #aaa;
+              box-shadow: 0 0 1px 3px rgba(59, 153, 252, 0.7);
             }
           `}</style>
         </div>
