@@ -10,7 +10,8 @@
   "main": "main/index.js",
   "scripts": {
     "dev": "electron .",
-    "build": "yarn build-renderer && yarn build-app",
+    "build": "yarn build-renderer",
+    "build-all": "yarn build-renderer && yarn build-app",
     "deploy": "yarn build-renderer && yarn deploy-app",
     "build-app": "electron-builder",
     "deploy-app": "electron-builder build --publish always",
