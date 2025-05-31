@@ -127,7 +127,8 @@ function startDownloading(
       bytes: 0,
       downloaded: torrent.downloaded,
       speed: torrent.downloadSpeed,
-      progress: torrent.progress
+      progress: torrent.progress,
+      timeRemaining: torrent.timeRemaining
     });
 
     torrent.on('download', function(bytes) {
@@ -136,7 +137,8 @@ function startDownloading(
         bytes,
         downloaded: torrent.downloaded,
         speed: torrent.downloadSpeed,
-        progress: torrent.progress
+        progress: torrent.progress,
+        timeRemaining: torrent.timeRemaining
       });
     });
 
