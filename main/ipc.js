@@ -29,8 +29,23 @@ module.exports = (app, mainWindow, tray) => {
     downloadPath: app.getPath('downloads'),
     resolution: '720',
     timeInterval: '15',
-    runOnBoot: false
+    runOnBoot: false,
+    downloadSpeedLimit: 0, // KB/s, 0 for unlimited
+    uploadSpeedLimit: 0 // KB/s, 0 for unlimited
   };
+
+  function applySpeedLimits(opts) {
+    const downloadSpeed = opts.downloadSpeedLimit > 0 ? opts.downloadSpeedLimit * 1024 : -1; // Bytes/s, webtorrent uses -1 for unlimited
+    const uploadSpeed = opts.uploadSpeedLimit > 0 ? opts.uploadSpeedLimit * 1024 : -1; // Bytes/s
+    if (client) { // Ensure client is initialized
+      client.throttleDownload(downloadSpeed);
+      client.throttleUpload(uploadSpeed);
+    }
+  }
+
+  // Initial application of speed limits
+  const initialOptions = { ...defaultOptions, ...(store.get('options') || {}) };
+  applySpeedLimits(initialOptions);
 
   app.setLoginItemSettings({
     openAtLogin: { ...defaultOptions, ...(store.get('options') || {}) }
@@ -84,6 +99,20 @@ module.exports = (app, mainWindow, tray) => {
     store.set('options', options);
   });
 
+  ipcMain.on('set-download-speed-limit', (event, value) => {
+    const options = { ...defaultOptions, ...(store.get('options') || {}) };
+    options.downloadSpeedLimit = Number(value); // Ensure it's a number
+    store.set('options', options);
+    applySpeedLimits(options);
+  });
+
+  ipcMain.on('set-upload-speed-limit', (event, value) => {
+    const options = { ...defaultOptions, ...(store.get('options') || {}) };
+    options.uploadSpeedLimit = Number(value); // Ensure it's a number
+    store.set('options', options);
+    applySpeedLimits(options);
+  });
+
   // Get-set the animes of the current season
   ipcMain.handle('get-season', async () => {
     return store.get('season') || [];
@@ -113,13 +142,21 @@ module.exports = (app, mainWindow, tray) => {
   });
 
   tray.on('mouse-move', () => {
-    tray.setToolTip(
-      `${app.name} ${app.getVersion()}\n${
-        client.torrents.length
-      } downloading, ${0} seeding\n${bytesConverter(
-        client.downloadSpeed
-      )} down, ${bytesConverter(client.uploadSpeed)} up`
-    );
+    const currentOptions = { ...defaultOptions, ...(store.get('options') || {}) };
+    const { downloadSpeedLimit, uploadSpeedLimit } = currentOptions;
+
+    let tooltipText = `${app.name} ${app.getVersion()}\n`;
+    tooltipText += `${client.torrents.length} downloading, ${0} seeding\n`; // Assuming 0 seeding as before
+    tooltipText += `${bytesConverter(client.downloadSpeed)} down, ${bytesConverter(client.uploadSpeed)} up`;
+
+    if (downloadSpeedLimit > 0) {
+      tooltipText += `\nDL Limit: ${downloadSpeedLimit} KB/s`;
+    }
+    if (uploadSpeedLimit > 0) {
+      tooltipText += `\nUL Limit: ${uploadSpeedLimit} KB/s`;
+    }
+
+    tray.setToolTip(tooltipText);
   });
 
   // Continue downloading
